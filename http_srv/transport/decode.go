@@ -1,7 +1,7 @@
 package transport
 
 type (
-	UserRequest struct {
+	CreateUserRequest struct {
 		Email     string `json:"email"`
 		Password  string `json:"password"`
 		Age       int    `json:"age"`

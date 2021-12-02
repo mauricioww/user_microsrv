@@ -7,7 +7,7 @@ import (
 )
 
 type HttpRepository interface {
-	CreateUser(ctx context.Context, email string) (string, error)
+	CreateUser(ctx context.Context, email string, pwd string, extra_info string, age int) (string, error)
 }
 
 type httpRepository struct {
@@ -20,7 +20,6 @@ func NewHttpRepository(logger log.Logger) HttpRepository {
 	}
 }
 
-func (hr httpRepository) CreateUser(ctx context.Context, email string) (string, error) {
-
-	return "succes", nil
+func (hr httpRepository) CreateUser(ctx context.Context, email string, pwd string, extra_info string, age int) (string, error) {
+	return email, nil
 }
