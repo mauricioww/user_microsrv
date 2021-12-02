@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 
 	"github.com/go-kit/kit/log"
 )
@@ -21,5 +22,10 @@ func NewHttpRepository(logger log.Logger) HttpRepository {
 }
 
 func (hr httpRepository) CreateUser(ctx context.Context, email string, pwd string, extra_info string, age int) (string, error) {
+	if email == "" || pwd == "" {
+		return "", errors.New("Email or Password empty!")
+	}
+
+	// TODO: add grpc proccess
 	return email, nil
 }

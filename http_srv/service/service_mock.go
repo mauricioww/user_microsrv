@@ -13,5 +13,5 @@ type RepoMock struct {
 func (r *RepoMock) CreateUser(ctx context.Context, email string, pwd string, extra_info string, age int) (string, error) {
 	args := r.Called(ctx, email, pwd, extra_info, age)
 
-	return args.Get(0).(string), args.Error(1)
+	return email, args.Get(1).(error)
 }

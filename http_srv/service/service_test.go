@@ -2,6 +2,7 @@ package service_test
 
 import (
 	"context"
+	"errors"
 	"os"
 	"testing"
 
@@ -37,11 +38,10 @@ func TestCreateUser(t *testing.T) {
 	http_service := service.NewHttpService(repository_mock, logger)
 
 	test_cases := []struct {
-		test_name     string
-		data          user_data
-		res           string
-		err           error
-		response_back func(ctx context.Context, email string, pwd string, extra_info string, age int)
+		test_name string
+		data      user_data
+		res       string
+		err       string
 	}{
 		{
 			test_name: "user created successfully",
@@ -51,8 +51,6 @@ func TestCreateUser(t *testing.T) {
 				Age:       23,
 				ExtraInfo: "fav movie: fight club",
 			},
-			res: "success@email.com",
-			err: nil,
 		},
 		{
 			test_name: "no email: error",
@@ -61,8 +59,7 @@ func TestCreateUser(t *testing.T) {
 				Age:       23,
 				ExtraInfo: "fav movie: fight club",
 			},
-			res: "",
-			err: service.Empty_Field,
+			err: "Email or Password empty!",
 		},
 		{
 			test_name: "no password: error",
@@ -71,8 +68,7 @@ func TestCreateUser(t *testing.T) {
 				Age:       23,
 				ExtraInfo: "fav movie: fight club",
 			},
-			res: "",
-			err: service.Empty_Field,
+			err: "Email or Password empty!",
 		},
 	}
 
@@ -81,14 +77,13 @@ func TestCreateUser(t *testing.T) {
 			// prepare
 			ctx := context.Background()
 			assert := assert.New(t)
-			repository_mock.On("CreateUser", ctx, tc.data.Email, tc.data.Password, tc.data.ExtraInfo, tc.data.Age).Return(tc.res, tc.err)
+			repository_mock.On("CreateUser", ctx, tc.data.Email, tc.data.Password, tc.data.ExtraInfo, tc.data.Age).Return(tc.res, errors.New(tc.err))
 
 			// act
-			res, err := http_service.CreateUser(ctx, tc.data.Email, tc.data.Password, tc.data.ExtraInfo, tc.data.Age)
+			_, err := http_service.CreateUser(ctx, tc.data.Email, tc.data.Password, tc.data.ExtraInfo, tc.data.Age)
 
 			// assert
-			assert.Equal(res, tc.res)
-			assert.Equal(err, tc.err)
+			assert.EqualError(err, tc.err)
 		})
 	}
 }
