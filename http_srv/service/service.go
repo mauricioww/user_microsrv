@@ -14,8 +14,8 @@ type HttpService interface {
 }
 
 type httpService struct {
-	logger     log.Logger
 	repository repository.HttpRepository
+	logger     log.Logger
 }
 
 func NewHttpService(r repository.HttpRepository, l log.Logger) HttpService {
@@ -27,6 +27,7 @@ func NewHttpService(r repository.HttpRepository, l log.Logger) HttpService {
 
 func (hs httpService) CreateUser(ctx context.Context, email string, pwd string, extra_info string, age int) (string, error) {
 	logger := log.With(hs.logger, "HTTP_SRV: method", "create_user")
+
 	user := entities.User{
 		Email:     email,
 		Password:  pwd,
@@ -41,6 +42,6 @@ func (hs httpService) CreateUser(ctx context.Context, email string, pwd string, 
 		return "", err
 	}
 
-	logger.Log("user_created_successfully", res)
+	logger.Log("user_send_successfully", res)
 	return res, nil
 }
