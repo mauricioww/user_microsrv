@@ -31,7 +31,6 @@ func TestCreateUser(t *testing.T) {
 			err: nil,
 		},
 	}
-
 	for _, tc := range test_cases {
 		t.Run(tc.test_name, func(t *testing.T) {
 			// prepare
