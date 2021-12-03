@@ -53,7 +53,7 @@ func TestCreateUser(t *testing.T) {
 			err: nil,
 		},
 		{
-			test_name: "no password",
+			test_name: "no password error",
 			user: entities.User{
 				Email:     "user@email.com",
 				Age:       23,
@@ -63,7 +63,7 @@ func TestCreateUser(t *testing.T) {
 			err: errors.New("Email or Password empty!"),
 		},
 		{
-			test_name: "no email",
+			test_name: "no email error",
 			user: entities.User{
 				Password:  "qwerty",
 				Age:       23,

@@ -30,7 +30,7 @@ func middleware(next http.Handler) http.Handler {
 }
 
 func decodeCreateUserRequest(ctx context.Context, r *http.Request) (interface{}, error) {
-	var request UserRequest
+	var request CreateUserRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		return nil, err

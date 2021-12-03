@@ -36,5 +36,5 @@ func Dialer(gm *GrpcMock) func(context.Context, string) (net.Conn, error) {
 func (gm *GrpcMock) CreateUser(ctx context.Context, user entities.User) (string, error) {
 	args := gm.Called(ctx, user)
 
-	return args.Get(0).(string), args.Error(1)
+	return args.String(0), args.Error(1)
 }
