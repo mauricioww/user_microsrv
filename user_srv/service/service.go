@@ -7,11 +7,10 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/mauricioww/user_microsrv/user_srv/entities"
 	"github.com/mauricioww/user_microsrv/user_srv/repository"
-	"github.com/mauricioww/user_microsrv/user_srv/userpb"
 )
 
 type GrpcUserService interface {
-	CreateUser(ctx context.Context, user *userpb.CreateUserRequest) (*userpb.CreateUserResponse, error)
+	CreateUser(ctx context.Context, email string, pwd string, extra_info string, age int) (string, error)
 }
 
 type grpcUserService struct {
@@ -26,22 +25,23 @@ func NewGrpcUserService(l log.Logger, r repository.UserSrvRepository) GrpcUserSe
 	}
 }
 
-func (g grpcUserService) CreateUser(ctx context.Context, user_pb *userpb.CreateUserRequest) (*userpb.CreateUserResponse, error) {
-	logger := log.With(g.logger, "GRPC_USER_SERVICE: methd", "create_user")
+func (g *grpcUserService) CreateUser(ctx context.Context, email string, pwd string, extra_info string, age int) (string, error) {
+	logger := log.With(g.logger, "GRPC_USER_SERVICE: method", "create_user")
 
 	user := entities.User{
-		Email:     user_pb.GetEmail(),
-		Password:  user_pb.GetPassword(),
-		Age:       int(user_pb.GetAge()),
-		ExtraInfo: user_pb.GetAdditionalInformation(),
+		Email:     email,
+		Password:  pwd,
+		Age:       age,
+		ExtraInfo: extra_info,
 	}
+
 	res, err := g.reepository.CreateUser(ctx, user)
 
 	if err != nil {
-		level.Error(logger).Log("err", err)
-		return &userpb.CreateUserResponse{}, err
+		level.Error(logger).Log("ERROR", err)
+		return "", err
 	}
 
-	logger.Log("create user", res)
-	return &userpb.CreateUserResponse{Id: res}, nil
+	logger.Log("user_saved_successfully", res)
+	return res, nil
 }

@@ -8,11 +8,10 @@ import (
 	"github.com/go-kit/log"
 	"github.com/mauricioww/user_microsrv/user_srv/entities"
 	"github.com/mauricioww/user_microsrv/user_srv/service"
-	"github.com/mauricioww/user_microsrv/user_srv/userpb"
 	"github.com/stretchr/testify/assert"
 )
 
-func CreateUserTest(t *testing.T) {
+func TestCreateUser(t *testing.T) {
 	var logger log.Logger
 	{
 		logger = log.NewLogfmtLogger(os.Stderr)
@@ -35,21 +34,19 @@ func CreateUserTest(t *testing.T) {
 
 	test_cases := []struct {
 		test_name string
-		data      *userpb.CreateUserRequest
-		res       *userpb.CreateUserResponse
+		data      entities.User
+		res       string
 		err       error
 	}{
 		{
 			test_name: "create user successfully",
-			data: &userpb.CreateUserRequest{
-				Email:                 "success@email.com",
-				Password:              "qwerty",
-				Age:                   23,
-				AdditionalInformation: "fav movie: fight club",
+			data: entities.User{
+				Email:     "success@email.com",
+				Password:  "qwerty",
+				Age:       23,
+				ExtraInfo: "fav movie: fight club",
 			},
-			res: &userpb.CreateUserResponse{
-				Id: "1",
-			},
+			res: "1",
 			err: nil,
 		},
 	}
@@ -59,16 +56,10 @@ func CreateUserTest(t *testing.T) {
 			// prepare
 			ctx := context.Background()
 			assert := assert.New(t)
-			user := entities.User{
-				Email:     tc.data.GetEmail(),
-				Password:  tc.data.GetPassword(),
-				Age:       int(tc.data.GetAge()),
-				ExtraInfo: tc.data.GetAdditionalInformation(),
-			}
 
 			// act
-			user_repo_mock.On("CreateUser", ctx, user).Return(tc.res, tc.err)
-			res, err := grpc_user_srv.CreateUser(ctx, tc.data)
+			user_repo_mock.On("CreateUser", ctx, tc.data).Return(tc.res, tc.err)
+			res, err := grpc_user_srv.CreateUser(ctx, tc.data.Email, tc.data.Password, tc.data.ExtraInfo, tc.data.Age)
 
 			// assert
 			assert.Equal(tc.res, res)

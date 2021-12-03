@@ -30,6 +30,6 @@ func (hr httpRepository) CreateUser(ctx context.Context, user entities.User) (st
 	if user.Email == "" || user.Password == "" {
 		return "", errors.New("Email or Password empty!")
 	}
-
+	// TODO: Send request to gRPC and return response (userpb)
 	return "success", nil
 }
