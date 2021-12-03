@@ -3,6 +3,7 @@ package transport
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	http_gokit "github.com/go-kit/kit/transport/http"
@@ -30,8 +31,9 @@ func middleware(next http.Handler) http.Handler {
 }
 
 func decodeCreateUserRequest(ctx context.Context, r *http.Request) (interface{}, error) {
-	var request CreateUserRequest
+	var request UserRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
+	fmt.Println(request)
 	if err != nil {
 		return nil, err
 	}
