@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/mauricioww/user_microsrv/http_srv/entities"
 	"github.com/mauricioww/user_microsrv/http_srv/repository"
 )
 
@@ -26,7 +27,14 @@ func NewHttpService(r repository.HttpRepository, l log.Logger) HttpService {
 
 func (hs httpService) CreateUser(ctx context.Context, email string, pwd string, extra_info string, age int) (string, error) {
 	logger := log.With(hs.logger, "HTTP_SRV: method", "create_user")
-	res, err := hs.repository.CreateUser(ctx, email)
+	user := entities.User{
+		Email:     email,
+		Password:  pwd,
+		Age:       age,
+		ExtraInfo: extra_info,
+	}
+
+	res, err := hs.repository.CreateUser(ctx, user)
 
 	if err != nil {
 		level.Error(logger).Log("ERROR: ", err)

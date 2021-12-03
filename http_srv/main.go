@@ -13,6 +13,7 @@ import (
 	"github.com/mauricioww/user_microsrv/http_srv/repository"
 	"github.com/mauricioww/user_microsrv/http_srv/service"
 	"github.com/mauricioww/user_microsrv/http_srv/transport"
+	"google.golang.org/grpc"
 )
 
 func main() {
@@ -35,9 +36,10 @@ func main() {
 	defer level.Info(logger).Log("msg", "service ended")
 
 	ctx := context.Background()
+	var client *grpc.ClientConn
 	var http_srv service.HttpService
 	{
-		repository := repository.NewHttpRepository(logger)
+		repository := repository.NewHttpRepository(client, logger)
 		http_srv = service.NewHttpService(repository, logger)
 	}
 
