@@ -7,4 +7,9 @@ type (
 		Age       int
 		ExtraInfo string
 	}
+
+	AuthenticateRequest struct {
+		Email    string
+		Password string
+	}
 )
