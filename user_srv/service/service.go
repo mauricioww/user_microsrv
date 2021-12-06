@@ -18,7 +18,7 @@ type grpcUserService struct {
 	logger      log.Logger
 }
 
-func NewGrpcUserService(l log.Logger, r repository.UserSrvRepository) GrpcUserService {
+func NewGrpcUserService(r repository.UserSrvRepository, l log.Logger) GrpcUserService {
 	return &grpcUserService{
 		logger:      l,
 		reepository: r,

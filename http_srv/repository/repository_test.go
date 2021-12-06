@@ -9,6 +9,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/mauricioww/user_microsrv/http_srv/entities"
 	"github.com/mauricioww/user_microsrv/http_srv/repository"
+	"github.com/mauricioww/user_microsrv/user_srv/userpb"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 )
@@ -33,13 +34,13 @@ func TestCreateUser(t *testing.T) {
 	conn, _ := grpc.DialContext(context.Background(), "", grpc.WithInsecure(), grpc.WithContextDialer(repository.Dialer(grpc_mock)))
 	defer conn.Close()
 
-	http_repository := repository.NewHttpRepository(conn, logger)
+	// http_repository := repository.NewHttpRepository(conn, logger)
 
 	test_cases := []struct {
-		test_name string
-		user      entities.User
-		res       string
-		err       error
+		test_name      string
+		user           entities.User
+		repository_res string
+		err            error
 	}{
 		{
 			test_name: "user created successfully",
@@ -49,8 +50,8 @@ func TestCreateUser(t *testing.T) {
 				Age:       23,
 				ExtraInfo: "fav movie: fight club",
 			},
-			res: "success",
-			err: nil,
+			repository_res: "1",
+			err:            nil,
 		},
 		{
 			test_name: "no password error",
@@ -59,8 +60,8 @@ func TestCreateUser(t *testing.T) {
 				Age:       23,
 				ExtraInfo: "fav movie: fight club",
 			},
-			res: "",
-			err: errors.New("Email or Password empty!"),
+			repository_res: "",
+			err:            errors.New("Email or Password empty!"),
 		},
 		{
 			test_name: "no email error",
@@ -69,8 +70,8 @@ func TestCreateUser(t *testing.T) {
 				Age:       23,
 				ExtraInfo: "fav movie: fight club",
 			},
-			res: "",
-			err: errors.New("Email or Password empty!"),
+			repository_res: "",
+			err:            errors.New("Email or Password empty!"),
 		},
 	}
 
@@ -79,13 +80,22 @@ func TestCreateUser(t *testing.T) {
 			//  prepare
 			ctx := context.Background()
 			assert := assert.New(t)
-			grpc_mock.On("CreateUser", ctx, tc.user).Return(tc.res, tc.err)
+
+			grpc_req := &userpb.CreateUserRequest{
+				Email:                 tc.user.Email,
+				Password:              tc.user.Password,
+				Age:                   uint32(tc.user.Age),
+				AdditionalInformation: tc.user.ExtraInfo,
+			}
+
+			grpc_res := &userpb.CreateUserResponse{Id: tc.repository_res}
+			grpc_mock.On("CreateUser", ctx, grpc_req).Return(grpc_res, tc.err)
 
 			// act
-			res, err := http_repository.CreateUser(ctx, tc.user)
+			res, err := grpc_mock.CreateUser(ctx, grpc_req)
 
 			// assert
-			assert.Equal(tc.res, res)
+			assert.Equal(res.GetId(), tc.repository_res)
 			assert.Equal(err, tc.err)
 		})
 	}

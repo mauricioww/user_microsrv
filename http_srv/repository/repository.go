@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/go-kit/kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/mauricioww/user_microsrv/http_srv/entities"
 	"github.com/mauricioww/user_microsrv/user_srv/userpb"
 	"google.golang.org/grpc"
@@ -27,9 +28,25 @@ func NewHttpRepository(conn *grpc.ClientConn, logger log.Logger) HttpRepository 
 }
 
 func (hr httpRepository) CreateUser(ctx context.Context, user entities.User) (string, error) {
+	logger := log.With(hr.logger, "method", "create_users")
+
 	if user.Email == "" || user.Password == "" {
 		return "", errors.New("Email or Password empty!")
 	}
-	// TODO: Send request to gRPC and return response (userpb)
-	return "success", nil
+
+	request := userpb.CreateUserRequest{
+		Email:                 user.Email,
+		Password:              user.Password,
+		Age:                   uint32(user.Age),
+		AdditionalInformation: user.ExtraInfo,
+	}
+	grpc_response, err := hr.client.CreateUser(ctx, &request)
+
+	if err != nil {
+		level.Error(logger).Log("err", err)
+		return "", err
+	}
+
+	res := grpc_response.GetId()
+	return res, nil
 }

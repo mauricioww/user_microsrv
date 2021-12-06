@@ -11,7 +11,7 @@ import (
 
 const (
 	create_user_sql = `
-		INSERT INTO users(email, password, age, additional_information)
+		INSERT INTO usr_service(email, password, age, extra_info)
 			VALUES (?, ?, ? , ?)
 	`
 )
