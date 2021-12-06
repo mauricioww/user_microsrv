@@ -2,6 +2,7 @@ package service_test
 
 import (
 	"context"
+	"errors"
 	"os"
 	"testing"
 
@@ -60,6 +61,79 @@ func TestCreateUser(t *testing.T) {
 			// act
 			user_repo_mock.On("CreateUser", ctx, tc.data).Return(tc.res, tc.err)
 			res, err := grpc_user_srv.CreateUser(ctx, tc.data.Email, tc.data.Password, tc.data.ExtraInfo, tc.data.Age)
+
+			// assert
+			assert.Equal(tc.res, res)
+			assert.Equal(tc.err, err)
+		})
+	}
+}
+
+func TestAuthenticate(t *testing.T) {
+	var logger log.Logger
+	{
+		logger = log.NewLogfmtLogger(os.Stderr)
+		logger = log.NewSyncLogger(logger)
+		logger = log.With(
+			logger,
+			"service",
+			"account",
+			"time",
+			log.DefaultTimestampUTC,
+			"caller",
+			log.DefaultCaller,
+		)
+	}
+
+	var grpc_user_srv service.GrpcUserService
+
+	user_repo_mock := new(service.UserRepositoryMock)
+	grpc_user_srv = service.NewGrpcUserService(user_repo_mock, logger)
+
+	test_cases := []struct {
+		test_name string
+		data      entities.Session
+		res       string
+		err       error
+	}{
+		{
+			test_name: "authenticate successfully",
+			data: entities.Session{
+				Email:    "user@email.com",
+				Password: "fake_password",
+			},
+			res: "auth_token",
+			err: nil,
+		},
+		{
+			test_name: "user not found",
+			data: entities.Session{
+				Email:    "fake_user@email.com",
+				Password: "fake_password",
+			},
+			res: "",
+			err: errors.New("Invalid password"),
+		},
+		{
+			test_name: "invalid pasword",
+			data: entities.Session{
+				Email:    "user@email.com",
+				Password: "invalid_password",
+			},
+			res: "",
+			err: errors.New("User not found"),
+		},
+	}
+
+	for _, tc := range test_cases {
+		t.Run(tc.test_name, func(t *testing.T) {
+			// prepare
+			ctx := context.Background()
+			assert := assert.New(t)
+
+			// act
+			user_repo_mock.On("Authenticate", ctx, tc.data).Return(tc.data.Password, tc.err)
+			res, err := grpc_user_srv.Authenticate(ctx, tc.data.Email, tc.data.Password)
 
 			// assert
 			assert.Equal(tc.res, res)

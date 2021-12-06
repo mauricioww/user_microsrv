@@ -14,10 +14,15 @@ const (
 		INSERT INTO usr_service(email, password, age, extra_info)
 			VALUES (?, ?, ? , ?)
 	`
+
+	authenticate_sql = `
+		SELECT u.password FROM usr_service u WHERE u.email = ?
+	`
 )
 
 type UserSrvRepository interface {
 	CreateUser(ctx context.Context, user entities.User) (string, error)
+	Authenticate(ctx context.Context, session entities.Session) (string, error)
 }
 
 type userSrvRepository struct {
@@ -42,4 +47,15 @@ func (r userSrvRepository) CreateUser(ctx context.Context, user entities.User) (
 	n, _ := id.LastInsertId()
 
 	return strconv.FormatInt(n, 10), nil
+}
+
+func (r userSrvRepository) Authenticate(ctx context.Context, session entities.Session) (string, error) {
+	var hash string
+	err := r.db.QueryRow(authenticate_sql, session.Email).Scan(&hash)
+
+	if err != nil {
+		return "", err
+	}
+
+	return hash, nil
 }
