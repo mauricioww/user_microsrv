@@ -3,7 +3,6 @@ package transport
 import (
 	"context"
 	"errors"
-	"log"
 
 	grpc_gokit "github.com/go-kit/kit/transport/grpc"
 	"github.com/mauricioww/user_microsrv/user_srv/userpb"
@@ -14,7 +13,7 @@ type gRPCServer struct {
 	userpb.UnimplementedUserServiceServer
 }
 
-func NewGrpcUserServer(grpc_endpoints GrpcUserServiceEndpoints, logger log.Logger) userpb.UserServiceServer {
+func NewGrpcUserServer(grpc_endpoints GrpcUserServiceEndpoints) userpb.UserServiceServer {
 	return &gRPCServer{
 		createUser: grpc_gokit.NewServer(
 			grpc_endpoints.CreateUser,
@@ -33,7 +32,7 @@ func decodeCreateUserRequest(_ context.Context, request interface{}) (interface{
 
 	req := CreateUserRequest{
 		Email:     user_pb.GetEmail(),
-		Password:  user_pb.GetEmail(),
+		Password:  user_pb.GetPassword(),
 		Age:       int(user_pb.GetAge()),
 		ExtraInfo: user_pb.GetAdditionalInformation(),
 	}
@@ -42,8 +41,8 @@ func decodeCreateUserRequest(_ context.Context, request interface{}) (interface{
 }
 
 func encodeCreateUserResponse(_ context.Context, response interface{}) (interface{}, error) {
-	res := response.(CreateUserResponse)
-	return &userpb.CreateUserResponse{Id: res.Id}, nil
+	res := response.(string)
+	return &userpb.CreateUserResponse{Id: res}, nil
 }
 
 func (g *gRPCServer) CreateUser(ctx context.Context, req *userpb.CreateUserRequest) (*userpb.CreateUserResponse, error) {

@@ -31,7 +31,7 @@ func TestCreateUser(t *testing.T) {
 			},
 			res_string: "success@email.com",
 			res: transport.CreateUserResponse{
-				ID: "success@email.com",
+				Id: "success@email.com",
 			},
 			err: nil,
 		},

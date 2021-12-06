@@ -5,7 +5,6 @@ import (
 	"log"
 	"net"
 
-	"github.com/mauricioww/user_microsrv/http_srv/entities"
 	"github.com/mauricioww/user_microsrv/user_srv/userpb"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc"
@@ -33,8 +32,8 @@ func Dialer(gm *GrpcMock) func(context.Context, string) (net.Conn, error) {
 	}
 }
 
-func (gm *GrpcMock) CreateUser(ctx context.Context, user entities.User) (string, error) {
-	args := gm.Called(ctx, user)
+func (m *GrpcMock) CreateUser(ctx context.Context, req *userpb.CreateUserRequest) (*userpb.CreateUserResponse, error) {
+	args := m.Called(ctx, req)
 
-	return args.String(0), args.Error(1)
+	return args.Get(0).(*userpb.CreateUserResponse), args.Error(1)
 }

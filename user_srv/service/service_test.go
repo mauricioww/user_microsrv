@@ -30,7 +30,7 @@ func TestCreateUser(t *testing.T) {
 	var grpc_user_srv service.GrpcUserService
 
 	user_repo_mock := new(service.UserRepositoryMock)
-	grpc_user_srv = service.NewGrpcUserService(logger, user_repo_mock)
+	grpc_user_srv = service.NewGrpcUserService(user_repo_mock, logger)
 
 	test_cases := []struct {
 		test_name string
