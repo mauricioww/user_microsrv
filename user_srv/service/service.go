@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/log/level"
@@ -11,6 +12,7 @@ import (
 
 type GrpcUserService interface {
 	CreateUser(ctx context.Context, email string, pwd string, extra_info string, age int) (string, error)
+	Authenticate(ctx context.Context, email string, pwd string) (string, error)
 }
 
 type grpcUserService struct {
@@ -44,4 +46,33 @@ func (g *grpcUserService) CreateUser(ctx context.Context, email string, pwd stri
 
 	logger.Log("user_saved_successfully", res)
 	return res, nil
+}
+
+func (g *grpcUserService) Authenticate(ctx context.Context, email string, pwd string) (string, error) {
+	logger := log.With(g.logger, "GRPC_USER_SERVICE: method", "authenticate")
+
+	auth := entities.Session{
+		Email:    email,
+		Password: pwd,
+	}
+
+	hashed_pwd, err := g.reepository.Authenticate(ctx, auth)
+
+	if err != nil {
+		level.Error(logger).Log("ERROR", err)
+		return "", err
+	}
+
+	if hashed_pwd == "" {
+		level.Error(logger).Log("ERROR", "User not found")
+		return "", errors.New("User not found")
+	}
+
+	// no_ok := bcrypt.CompareHashAndPassword([]byte(hashed_pwd), []byte(auth.Password))
+
+	if hashed_pwd != auth.Password {
+		return "", errors.New("Invalid password")
+	}
+
+	return "auth_token", nil
 }

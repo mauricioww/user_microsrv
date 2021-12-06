@@ -9,7 +9,8 @@ import (
 )
 
 type gRPCServer struct {
-	createUser grpc_gokit.Handler
+	createUser   grpc_gokit.Handler
+	authenticate grpc_gokit.Handler
 	userpb.UnimplementedUserServiceServer
 }
 
@@ -20,7 +21,33 @@ func NewGrpcUserServer(grpc_endpoints GrpcUserServiceEndpoints) userpb.UserServi
 			decodeCreateUserRequest,
 			encodeCreateUserResponse,
 		),
+
+		authenticate: grpc_gokit.NewServer(
+			grpc_endpoints.Authenticate,
+			decodeAuthenticateRequest,
+			encodeAuthenticateResponse,
+		),
 	}
+}
+
+func decodeAuthenticateRequest(_ context.Context, request interface{}) (interface{}, error) {
+	auth_pb, ok := request.(*userpb.AuthenticateRequest)
+
+	if !ok {
+		return nil, errors.New("No proto message 'Authenticate' request")
+	}
+
+	req := AuthenticateRequest{
+		Email:    auth_pb.GetEmail(),
+		Password: auth_pb.GetPassword(),
+	}
+
+	return req, nil
+}
+
+func encodeAuthenticateResponse(_ context.Context, response interface{}) (interface{}, error) {
+	res := response.(string)
+	return &userpb.AuthenticateResponse{Token: res}, nil
 }
 
 func decodeCreateUserRequest(_ context.Context, request interface{}) (interface{}, error) {
@@ -53,4 +80,14 @@ func (g *gRPCServer) CreateUser(ctx context.Context, req *userpb.CreateUserReque
 	}
 
 	return res.(*userpb.CreateUserResponse), nil
+}
+
+func (g *gRPCServer) Authenticate(ctx context.Context, req *userpb.AuthenticateRequest) (*userpb.AuthenticateResponse, error) {
+	_, res, err := g.authenticate.ServeGRPC(ctx, req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return res.(*userpb.AuthenticateResponse), nil
 }
