@@ -19,6 +19,12 @@ func NewHTTPServer(ctx context.Context, http_endpoints HttpEndpoints) http.Handl
 		encodeCreateUserResponse,
 	))
 
+	r.Methods("POST").Path("/auth").Handler(http_gokit.NewServer(
+		http_endpoints.CreateUser,
+		decodeAuthenticateRequest,
+		encodeCreateUserResponse,
+	))
+
 	return r
 }
 
@@ -27,6 +33,15 @@ func middleware(next http.Handler) http.Handler {
 		rw.Header().Add("Content-Type", "application/json")
 		next.ServeHTTP(rw, r)
 	})
+}
+
+func decodeAuthenticateRequest(ctx context.Context, r *http.Request) (interface{}, error) {
+	var request AuthenticateRequest
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		return nil, err
+	}
+	return request, nil
 }
 
 func decodeCreateUserRequest(ctx context.Context, r *http.Request) (interface{}, error) {

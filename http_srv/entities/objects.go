@@ -7,4 +7,9 @@ type (
 		Age       int
 		ExtraInfo string
 	}
+
+	Session struct {
+		Email    string
+		Password string
+	}
 )

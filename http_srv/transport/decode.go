@@ -7,4 +7,9 @@ type (
 		Age       int    `json:"age"`
 		ExtraInfo string `json:"additional_information"`
 	}
+
+	AuthenticateRequest struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
 )

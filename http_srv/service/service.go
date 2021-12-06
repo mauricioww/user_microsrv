@@ -11,6 +11,7 @@ import (
 
 type HttpService interface {
 	CreateUser(ctx context.Context, email string, pwd string, extra_info string, age int) (string, error)
+	Authenticate(ctx context.Context, email string, pwd string) (string, error)
 }
 
 type httpService struct {
@@ -44,5 +45,23 @@ func (hs httpService) CreateUser(ctx context.Context, email string, pwd string, 
 	}
 
 	logger.Log("user_send_successfully", res)
+	return res, nil
+}
+
+func (hs httpService) Authenticate(ctx context.Context, email string, pwd string) (string, error) {
+	logger := log.With(hs.logger, "HTTP_SRV: method", "authenticate")
+	session := entities.Session{
+		Email:    email,
+		Password: pwd,
+	}
+
+	res, err := hs.repository.Authenticate(ctx, session)
+
+	if err != nil {
+		level.Error(logger).Log("ERROR: ", err)
+		return "", err
+	}
+
+	logger.Log("user authenticated", res)
 	return res, nil
 }

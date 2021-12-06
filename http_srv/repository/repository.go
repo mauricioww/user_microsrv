@@ -13,6 +13,7 @@ import (
 
 type HttpRepository interface {
 	CreateUser(ctx context.Context, user entities.User) (string, error)
+	Authenticate(ctx context.Context, session entities.Session) (string, error)
 }
 
 type httpRepository struct {
@@ -49,4 +50,23 @@ func (hr httpRepository) CreateUser(ctx context.Context, user entities.User) (st
 
 	res := grpc_response.GetId()
 	return res, nil
+}
+
+func (hr httpRepository) Authenticate(ctx context.Context, session entities.Session) (string, error) {
+	logger := log.With(hr.logger, "method", "create_users")
+
+	if session.Email == "" || session.Password == "" {
+		return "", errors.New("Email or Password empty!")
+	}
+
+	// TODO: send grpc method
+	var err error = nil
+
+	if err != nil {
+		level.Error(logger).Log("err", err)
+		return "", err
+	}
+
+	// TODO: return a real token
+	return "auth_token", nil
 }
