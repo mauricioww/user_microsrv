@@ -102,7 +102,7 @@ func TestAuthenticate(t *testing.T) {
 				Email:    "user@email.com",
 				Password: "fake_password",
 			},
-			res: "auth_token",
+			res: "user_authenticated",
 			err: nil,
 		},
 		{
