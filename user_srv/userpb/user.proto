@@ -19,10 +19,10 @@ message AuthenticateRequest {
 }
 
 message AuthenticateResponse {
-    string token = 1;
+    string result = 1;
 }
 
 service UserService {
     rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {};
-    rpc Athenticate(AuthenticateRequest) returns (AuthenticateResponse) {};
+    rpc Authenticate(AuthenticateRequest) returns (AuthenticateResponse) {};
 }

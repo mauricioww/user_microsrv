@@ -2,7 +2,9 @@ package service
 
 import (
 	"context"
+	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/mauricioww/user_microsrv/http_srv/entities"
@@ -11,6 +13,7 @@ import (
 
 type HttpService interface {
 	CreateUser(ctx context.Context, email string, pwd string, extra_info string, age int) (string, error)
+	Authenticate(ctx context.Context, email string, pwd string) (string, error)
 }
 
 type httpService struct {
@@ -45,4 +48,34 @@ func (hs httpService) CreateUser(ctx context.Context, email string, pwd string, 
 
 	logger.Log("user_send_successfully", res)
 	return res, nil
+}
+
+func (hs httpService) Authenticate(ctx context.Context, email string, pwd string) (string, error) {
+	logger := log.With(hs.logger, "HTTP_SRV: method", "authenticate")
+	session := entities.Session{
+		Email:    email,
+		Password: pwd,
+	}
+
+	res, err := hs.repository.Authenticate(ctx, session)
+
+	if err != nil {
+		level.Error(logger).Log("ERROR: ", err)
+		return "", err
+	}
+
+	if res == "user_authenticated" {
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+			"iss": "auth-app",
+			"sub": "medium",
+			"aud": "any",
+			"exp": time.Now().Add(time.Minute * 5).Unix(),
+		})
+
+		jwt_token, _ := token.SignedString([]byte("secret"))
+
+		logger.Log("user authenticated", res)
+		return jwt_token, nil
+	}
+	return "", nil
 }

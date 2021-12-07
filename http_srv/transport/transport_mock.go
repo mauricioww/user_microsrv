@@ -15,3 +15,9 @@ func (s *ServiceMock) CreateUser(ctx context.Context, email string, pwd string, 
 
 	return args.String(0), args.Error(1)
 }
+
+func (s *ServiceMock) Authenticate(ctx context.Context, email string, pwd string) (string, error) {
+	args := s.Called(ctx, email, pwd)
+
+	return args.String(0), args.Error(1)
+}

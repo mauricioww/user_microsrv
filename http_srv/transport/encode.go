@@ -13,4 +13,8 @@ type (
 		Age       int    `json:"Age"`
 		ExtraInfo string `json:"extra_information"`
 	}
+
+	AuthenticateResponse struct {
+		Token string `json:"Token"`
+	}
 )

@@ -34,7 +34,7 @@ func decodeAuthenticateRequest(_ context.Context, request interface{}) (interfac
 	auth_pb, ok := request.(*userpb.AuthenticateRequest)
 
 	if !ok {
-		return nil, errors.New("No proto message 'Authenticate' request")
+		return nil, errors.New("No 'AuthenticateRequest' type")
 	}
 
 	req := AuthenticateRequest{
@@ -47,7 +47,8 @@ func decodeAuthenticateRequest(_ context.Context, request interface{}) (interfac
 
 func encodeAuthenticateResponse(_ context.Context, response interface{}) (interface{}, error) {
 	res := response.(string)
-	return &userpb.AuthenticateResponse{Token: res}, nil
+
+	return &userpb.AuthenticateResponse{Result: res}, nil
 }
 
 func decodeCreateUserRequest(_ context.Context, request interface{}) (interface{}, error) {
