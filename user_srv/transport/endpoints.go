@@ -2,6 +2,7 @@ package transport
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/go-kit/kit/endpoint"
 	"github.com/mauricioww/user_microsrv/user_srv/service"
@@ -31,6 +32,13 @@ func makeAuthenticateEndpoint(srv service.GrpcUserService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req, _ := request.(AuthenticateRequest)
 		res, err := srv.Authenticate(ctx, req.Email, req.Password)
-		return res, err
+		fmt.Println(res)
+		fmt.Println(err)
+		if err != nil {
+			return "", SrvError(err)
+		}
+		return AuthenticateResponse{
+			Token: res,
+		}, err
 	}
 }

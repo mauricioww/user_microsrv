@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"strconv"
 
 	"github.com/go-kit/kit/log"
@@ -41,7 +42,7 @@ func (r userSrvRepository) CreateUser(ctx context.Context, user entities.User) (
 	id, err := r.db.ExecContext(ctx, create_user_sql, user.Email, user.Password, user.Age, user.ExtraInfo)
 
 	if err != nil {
-		return "", err
+		return "", INTERNAL_ERROR{Err: errors.New("Internal Error")}
 	}
 
 	n, _ := id.LastInsertId()
@@ -53,8 +54,12 @@ func (r userSrvRepository) Authenticate(ctx context.Context, session entities.Se
 	var hash string
 	err := r.db.QueryRow(authenticate_sql, session.Email).Scan(&hash)
 
+	if err == sql.ErrNoRows {
+		return "", USER_NOT_FOUND{Err: errors.New("User not found")}
+	}
+
 	if err != nil {
-		return "", err
+		return "", INTERNAL_ERROR{Err: errors.New("Internal Error")}
 	}
 
 	return hash, nil

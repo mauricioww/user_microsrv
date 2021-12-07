@@ -35,13 +35,13 @@ func (hr httpRepository) CreateUser(ctx context.Context, user entities.User) (st
 		return "", errors.New("Email or Password empty!")
 	}
 
-	request := userpb.CreateUserRequest{
+	grpc_request := userpb.CreateUserRequest{
 		Email:                 user.Email,
 		Password:              user.Password,
 		Age:                   uint32(user.Age),
 		AdditionalInformation: user.ExtraInfo,
 	}
-	grpc_response, err := hr.client.CreateUser(ctx, &request)
+	grpc_response, err := hr.client.CreateUser(ctx, &grpc_request)
 
 	if err != nil {
 		level.Error(logger).Log("err", err)
@@ -56,17 +56,19 @@ func (hr httpRepository) Authenticate(ctx context.Context, session entities.Sess
 	logger := log.With(hr.logger, "method", "create_users")
 
 	if session.Email == "" || session.Password == "" {
-		return "", errors.New("Email or Password empty!")
+		return "", errors.New("Email or Password empty")
 	}
 
-	// TODO: send grpc method
-	var err error = nil
+	grpc_request := userpb.AuthenticateRequest{
+		Email:    session.Email,
+		Password: session.Password,
+	}
+	grpc_response, err := hr.client.Authenticate(ctx, &grpc_request)
 
 	if err != nil {
 		level.Error(logger).Log("err", err)
 		return "", err
 	}
 
-	// TODO: return a real token
-	return "auth_token", nil
+	return grpc_response.GetResult(), nil
 }

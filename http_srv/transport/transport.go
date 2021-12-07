@@ -16,13 +16,13 @@ func NewHTTPServer(ctx context.Context, http_endpoints HttpEndpoints) http.Handl
 	r.Methods("POST").Path("/user").Handler(http_gokit.NewServer(
 		http_endpoints.CreateUser,
 		decodeCreateUserRequest,
-		encodeCreateUserResponse,
+		encodeResponse,
 	))
 
-	r.Methods("POST").Path("/auth").Handler(http_gokit.NewServer(
-		http_endpoints.CreateUser,
+	r.Methods("GET").Path("/auth").Handler(http_gokit.NewServer(
+		http_endpoints.Authenticate,
 		decodeAuthenticateRequest,
-		encodeCreateUserResponse,
+		encodeResponse,
 	))
 
 	return r
@@ -53,6 +53,6 @@ func decodeCreateUserRequest(ctx context.Context, r *http.Request) (interface{},
 	return request, nil
 }
 
-func encodeCreateUserResponse(ctx context.Context, rw http.ResponseWriter, response interface{}) error {
+func encodeResponse(ctx context.Context, rw http.ResponseWriter, response interface{}) error {
 	return json.NewEncoder(rw).Encode(response)
 }

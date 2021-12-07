@@ -60,19 +60,14 @@ func (g *grpcUserService) Authenticate(ctx context.Context, email string, pwd st
 
 	if err != nil {
 		level.Error(logger).Log("ERROR", err)
-		return "", err
-	}
-
-	if hashed_pwd == "" {
-		level.Error(logger).Log("ERROR", "User not found")
-		return "", errors.New("User not found")
+		return "", RepoError(err)
 	}
 
 	// no_ok := bcrypt.CompareHashAndPassword([]byte(hashed_pwd), []byte(auth.Password))
 
 	if hashed_pwd != auth.Password {
-		return "", errors.New("Invalid password")
+		return "", UNAUTHENTICATED_USER{Err: errors.New("Password error")}
 	}
 
-	return "auth_token", nil
+	return "user_authenticated", nil
 }
