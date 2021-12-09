@@ -93,6 +93,8 @@ func TestAuthenticate(t *testing.T) {
 	test_cases := []struct {
 		test_name string
 		data      entities.Session
+		repo_pwd  string
+		repo_err  error
 		res       string
 		err       error
 	}{
@@ -102,26 +104,30 @@ func TestAuthenticate(t *testing.T) {
 				Email:    "user@email.com",
 				Password: "fake_password",
 			},
-			res: "user_authenticated",
-			err: nil,
+			res:      "user_authenticated",
+			repo_pwd: "fake_password",
+			repo_err: nil,
+			err:      nil,
 		},
 		{
-			test_name: "user not found",
+			test_name: "user not found error",
 			data: entities.Session{
 				Email:    "fake_user@email.com",
 				Password: "fake_password",
 			},
-			res: "",
-			err: errors.New("Invalid password"),
+			repo_pwd: "fake_password",
+			repo_err: errors.New("User not found"),
+			err:      errors.New("User not found"),
 		},
 		{
-			test_name: "invalid pasword",
+			test_name: "invalid pasword error",
 			data: entities.Session{
 				Email:    "user@email.com",
-				Password: "invalid_password",
+				Password: "fakee_password",
 			},
-			res: "",
-			err: errors.New("User not found"),
+			repo_pwd: "incorrrect_password",
+			repo_err: nil,
+			err:      errors.New("Password error"),
 		},
 	}
 
@@ -130,9 +136,10 @@ func TestAuthenticate(t *testing.T) {
 			// prepare
 			ctx := context.Background()
 			assert := assert.New(t)
+			// invalid data
 
 			// act
-			user_repo_mock.On("Authenticate", ctx, tc.data).Return(tc.data.Password, tc.err)
+			user_repo_mock.On("Authenticate", ctx, tc.data).Return(tc.repo_pwd, tc.repo_err)
 			res, err := grpc_user_srv.Authenticate(ctx, tc.data.Email, tc.data.Password)
 
 			// assert

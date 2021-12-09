@@ -52,6 +52,7 @@ func (hs httpService) CreateUser(ctx context.Context, email string, pwd string, 
 
 func (hs httpService) Authenticate(ctx context.Context, email string, pwd string) (string, error) {
 	logger := log.With(hs.logger, "HTTP_SRV: method", "authenticate")
+	var response string
 	session := entities.Session{
 		Email:    email,
 		Password: pwd,
@@ -66,16 +67,19 @@ func (hs httpService) Authenticate(ctx context.Context, email string, pwd string
 
 	if res == "user_authenticated" {
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-			"iss": "auth-app",
-			"sub": "medium",
-			"aud": "any",
-			"exp": time.Now().Add(time.Minute * 5).Unix(),
+			"email": email,
+			"exp":   time.Now().Add(time.Minute * 15).Unix(),
 		})
 
-		jwt_token, _ := token.SignedString([]byte("secret"))
+		response, err = token.SignedString([]byte("this_is_a_secret_shhh"))
+
+		if err != nil {
+			level.Error(logger).Log("ERROR: ", err)
+			return "", err
+		}
 
 		logger.Log("user authenticated", res)
-		return jwt_token, nil
 	}
-	return "", nil
+
+	return response, nil
 }
