@@ -1,16 +1,11 @@
 package transport
 
 type (
-	Error struct {
-		Message string `json:"message"`
-		Status  int    `json:"status"`
-	}
-
 	CreateUserResponse struct {
 		Id        string `json:"id"`
 		Email     string `json:"email"`
 		Password  string `json:"password"`
-		Age       int    `json:"Age"`
+		Age       int    `json:"age"`
 		ExtraInfo string `json:"extra_information"`
 	}
 

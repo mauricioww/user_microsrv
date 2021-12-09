@@ -116,7 +116,7 @@ func TestAuthenticate(t *testing.T) {
 				Email:    "fake_email@email.com",
 				Password: "fake_password",
 			},
-			res: "generated_auth_token",
+			res: "user_authenticated",
 			err: nil,
 		},
 		{
@@ -134,22 +134,20 @@ func TestAuthenticate(t *testing.T) {
 			err: errors.New("Email or Password empty!"),
 		},
 		{
-			test_name: "user not found",
+			test_name: "user not found error",
 			data: entities.Session{
 				Email:    "no_real@email.com",
 				Password: "fake_password",
 			},
-			res: "",
 			err: errors.New("User not found"),
 		},
 		{
-			test_name: "invalid password",
+			test_name: "invalid password error",
 			data: entities.Session{
 				Email:    "user@email.com",
 				Password: "invalid_password",
 			},
-			res: "",
-			err: errors.New("Invalid user"),
+			err: errors.New("Password error"),
 		},
 	}
 

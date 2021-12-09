@@ -64,7 +64,6 @@ func (g *grpcUserService) Authenticate(ctx context.Context, email string, pwd st
 	}
 
 	// no_ok := bcrypt.CompareHashAndPassword([]byte(hashed_pwd), []byte(auth.Password))
-
 	if hashed_pwd != auth.Password {
 		return "", errors.New("Password error")
 	}
