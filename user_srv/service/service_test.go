@@ -92,41 +92,39 @@ func TestAuthenticate(t *testing.T) {
 
 	test_cases := []struct {
 		test_name string
-		data      entities.Session
+		data      *entities.Session
 		repo_pwd  string
 		repo_err  error
-		res       string
+		res       int
 		err       error
 	}{
 		{
 			test_name: "authenticate successfully",
-			data: entities.Session{
+			data: &entities.Session{
 				Email:    "user@email.com",
 				Password: "fake_password",
 			},
-			res:      "user_authenticated",
 			repo_pwd: "fake_password",
-			repo_err: nil,
-			err:      nil,
 		},
 		{
 			test_name: "user not found error",
-			data: entities.Session{
+			data: &entities.Session{
 				Email:    "fake_user@email.com",
 				Password: "fake_password",
 			},
 			repo_pwd: "fake_password",
 			repo_err: errors.New("User not found"),
+			res:      -1,
 			err:      errors.New("User not found"),
 		},
 		{
 			test_name: "invalid pasword error",
-			data: entities.Session{
+			data: &entities.Session{
 				Email:    "user@email.com",
 				Password: "fakee_password",
 			},
 			repo_pwd: "incorrrect_password",
-			repo_err: nil,
+			res:      -1,
 			err:      errors.New("Password error"),
 		},
 	}

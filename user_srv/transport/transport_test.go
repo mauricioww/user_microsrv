@@ -58,7 +58,7 @@ func TestAuthenticate(t *testing.T) {
 	test_cases := []struct {
 		test_name string
 		data      transport.AuthenticateRequest
-		res       string
+		res       int
 		err       error
 	}{
 		{
@@ -67,7 +67,7 @@ func TestAuthenticate(t *testing.T) {
 				Email:    "user@email.com",
 				Password: "qwerty",
 			},
-			res: "auth_token",
+			res: 0,
 			err: nil,
 		},
 		{
@@ -76,7 +76,7 @@ func TestAuthenticate(t *testing.T) {
 				Email:    "user@email.com",
 				Password: "invalid_password",
 			},
-			res: "",
+			res: -1,
 			err: errors.New("Invalid Password"),
 		},
 	}

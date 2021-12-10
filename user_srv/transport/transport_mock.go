@@ -16,8 +16,8 @@ func (s *GrpcUserSrvMock) CreateUser(ctx context.Context, email string, pwd stri
 	return args.String(0), args.Error(1)
 }
 
-func (s *GrpcUserSrvMock) Authenticate(ctx context.Context, email string, pwd string) (string, error) {
+func (s *GrpcUserSrvMock) Authenticate(ctx context.Context, email string, pwd string) (int, error) {
 	args := s.Called(ctx, email, pwd)
 
-	return args.String(0), args.Error(1)
+	return args.Int(0), args.Error(1)
 }

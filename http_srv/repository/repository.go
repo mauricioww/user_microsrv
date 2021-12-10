@@ -13,7 +13,7 @@ import (
 
 type HttpRepository interface {
 	CreateUser(ctx context.Context, user entities.User) (string, error)
-	Authenticate(ctx context.Context, session entities.Session) (string, error)
+	Authenticate(ctx context.Context, session entities.Session) (int, error)
 }
 
 type httpRepository struct {
@@ -52,11 +52,11 @@ func (hr httpRepository) CreateUser(ctx context.Context, user entities.User) (st
 	return res, nil
 }
 
-func (hr httpRepository) Authenticate(ctx context.Context, session entities.Session) (string, error) {
+func (hr httpRepository) Authenticate(ctx context.Context, session entities.Session) (int, error) {
 	logger := log.With(hr.logger, "method", "create_users")
 
 	if session.Email == "" || session.Password == "" {
-		return "", errors.New("Email or Password empty")
+		return -1, errors.New("Email or Password empty")
 	}
 
 	grpc_request := userpb.AuthenticateRequest{
@@ -67,8 +67,8 @@ func (hr httpRepository) Authenticate(ctx context.Context, session entities.Sess
 
 	if err != nil {
 		level.Error(logger).Log("err", err)
-		return "", err
+		return -1, err
 	}
 
-	return grpc_response.GetResult(), nil
+	return int(grpc_response.GetUserId()), nil
 }
