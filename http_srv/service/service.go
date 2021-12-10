@@ -31,7 +31,6 @@ func NewHttpService(r repository.HttpRepository, l log.Logger) HttpService {
 
 func (hs httpService) CreateUser(ctx context.Context, email string, pwd string, extra_info string, age int) (string, error) {
 	logger := log.With(hs.logger, "HTTP_SRV: method", "create_user")
-	// hashed_pwd, _ := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.MinCost)
 
 	user := entities.User{
 		Email:     email,
@@ -53,6 +52,7 @@ func (hs httpService) CreateUser(ctx context.Context, email string, pwd string, 
 
 func (hs httpService) Authenticate(ctx context.Context, email string, pwd string) (string, error) {
 	logger := log.With(hs.logger, "HTTP_SRV: method", "authenticate")
+
 	var response string
 	session := entities.Session{
 		Email:    email,
