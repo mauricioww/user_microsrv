@@ -6,6 +6,6 @@ type (
 	}
 
 	AuthenticateResponse struct {
-		Token string
+		Id string
 	}
 )

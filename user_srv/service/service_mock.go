@@ -17,7 +17,7 @@ func (r *UserRepositoryMock) CreateUser(ctx context.Context, user entities.User)
 	return args.String(0), args.Error(1)
 }
 
-func (r *UserRepositoryMock) Authenticate(ctx context.Context, session entities.Session) (string, error) {
+func (r *UserRepositoryMock) Authenticate(ctx context.Context, session *entities.Session) (string, error) {
 	args := r.Called(ctx, session)
 
 	return args.String(0), args.Error(1)

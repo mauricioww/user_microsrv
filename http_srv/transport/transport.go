@@ -60,7 +60,7 @@ func authMiddleware(next http.Handler) http.Handler {
 			})
 
 			if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-				fmt.Println(claims["email"])
+				fmt.Println(claims)
 				next.ServeHTTP(rw, r)
 			} else {
 				fmt.Println(err)

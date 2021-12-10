@@ -13,7 +13,7 @@ import (
 
 type GrpcUserService interface {
 	CreateUser(ctx context.Context, email string, pwd string, extra_info string, age int) (string, error)
-	Authenticate(ctx context.Context, email string, pwd string) (string, error)
+	Authenticate(ctx context.Context, email string, pwd string) (int, error)
 }
 
 type grpcUserService struct {
@@ -50,7 +50,7 @@ func (g *grpcUserService) CreateUser(ctx context.Context, email string, pwd stri
 	return res, nil
 }
 
-func (g *grpcUserService) Authenticate(ctx context.Context, email string, pwd string) (string, error) {
+func (g *grpcUserService) Authenticate(ctx context.Context, email string, pwd string) (int, error) {
 	logger := log.With(g.logger, "GRPC_USER_SERVICE: method", "authenticate")
 
 	auth := entities.Session{
@@ -58,16 +58,16 @@ func (g *grpcUserService) Authenticate(ctx context.Context, email string, pwd st
 		Password: pwd,
 	}
 
-	hashed_pwd, err := g.repository.Authenticate(ctx, auth)
+	hashed_pwd, err := g.reepository.Authenticate(ctx, &auth)
 
 	if err != nil {
 		level.Error(logger).Log("ERROR", err)
-		return "", err
+		return -1, err
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(hashed_pwd), []byte(auth.Password)); err != nil {
-		return "", errors.New("Password error")
+	if hashed_pwd != auth.Password {
+		return -1, errors.New("Password error")
 	}
 
-	return "user_authenticated", nil
+	return auth.Id, nil
 }

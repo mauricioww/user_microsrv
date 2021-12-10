@@ -19,7 +19,7 @@ message AuthenticateRequest {
 }
 
 message AuthenticateResponse {
-    string result = 1;
+    int32 user_id = 1;
 }
 
 service UserService {

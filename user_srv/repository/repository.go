@@ -23,7 +23,7 @@ const (
 
 type UserSrvRepository interface {
 	CreateUser(ctx context.Context, user entities.User) (string, error)
-	Authenticate(ctx context.Context, session entities.Session) (string, error)
+	Authenticate(ctx context.Context, session *entities.Session) (string, error)
 }
 
 type userSrvRepository struct {
@@ -50,10 +50,9 @@ func (r userSrvRepository) CreateUser(ctx context.Context, user entities.User) (
 	return strconv.FormatInt(n, 10), nil
 }
 
-func (r userSrvRepository) Authenticate(ctx context.Context, session entities.Session) (string, error) {
+func (r userSrvRepository) Authenticate(ctx context.Context, session *entities.Session) (string, error) {
 	var hash string
-	var id int
-	err := r.db.QueryRow(authenticate_sql, session.Email).Scan(&id, &hash)
+	err := r.db.QueryRow(authenticate_sql, session.Email).Scan(&session.Id, &hash)
 
 	if err == sql.ErrNoRows {
 		return "", errors.New("User not found")

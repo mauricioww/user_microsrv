@@ -107,7 +107,7 @@ func TestAuthenticate(t *testing.T) {
 	test_cases := []struct {
 		test_name string
 		data      entities.Session
-		res       string
+		res       int
 		err       error
 	}{
 		{
@@ -116,7 +116,7 @@ func TestAuthenticate(t *testing.T) {
 				Email:    "fake_email@email.com",
 				Password: "fake_password",
 			},
-			res: "user_authenticated",
+			res: 0,
 			err: nil,
 		},
 		{
@@ -124,6 +124,7 @@ func TestAuthenticate(t *testing.T) {
 			data: entities.Session{
 				Password: "fake_password",
 			},
+			res: -1,
 			err: errors.New("Email or Password empty!"),
 		},
 		{
@@ -131,6 +132,7 @@ func TestAuthenticate(t *testing.T) {
 			data: entities.Session{
 				Email: "fake_email@email.com",
 			},
+			res: -1,
 			err: errors.New("Email or Password empty!"),
 		},
 		{
@@ -139,6 +141,7 @@ func TestAuthenticate(t *testing.T) {
 				Email:    "no_real@email.com",
 				Password: "fake_password",
 			},
+			res: -1,
 			err: errors.New("User not found"),
 		},
 		{
@@ -147,6 +150,7 @@ func TestAuthenticate(t *testing.T) {
 				Email:    "user@email.com",
 				Password: "invalid_password",
 			},
+			res: -1,
 			err: errors.New("Password error"),
 		},
 	}
@@ -162,10 +166,10 @@ func TestAuthenticate(t *testing.T) {
 			res, err := http_service.Authenticate(ctx, tc.data.Email, tc.data.Password)
 
 			// assert
-			if tc.res == "" {
-				assert.Empty(res)
-			} else {
+			if tc.res >= 0 {
 				assert.NotEmpty(res)
+			} else {
+				assert.Empty(res)
 			}
 			assert.Equal(tc.err, err)
 		})

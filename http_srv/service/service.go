@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -65,10 +66,11 @@ func (hs httpService) Authenticate(ctx context.Context, email string, pwd string
 		return "", err
 	}
 
-	if res == "user_authenticated" {
+	if res >= 0 {
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-			"email": email,
-			"exp":   time.Now().Add(time.Minute * 15).Unix(),
+			"user_id": strconv.Itoa(res),
+			"email":   session.Email,
+			"exp":     time.Now().Add(time.Minute * 15).Unix(),
 		})
 
 		response, err = token.SignedString([]byte("this_is_a_secret_shhh"))

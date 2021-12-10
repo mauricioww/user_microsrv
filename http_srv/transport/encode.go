@@ -2,7 +2,7 @@ package transport
 
 type (
 	CreateUserResponse struct {
-		Id        string `json:"id"`
+		Id        string `json:"user_id"`
 		Email     string `json:"email"`
 		Password  string `json:"password"`
 		Age       int    `json:"age"`
@@ -10,6 +10,6 @@ type (
 	}
 
 	AuthenticateResponse struct {
-		Token string `json:"Token"`
+		Token string `json:"token"`
 	}
 )
