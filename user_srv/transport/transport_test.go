@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/mauricioww/user_microsrv/user_srv/entities"
 	"github.com/mauricioww/user_microsrv/user_srv/transport"
 	"github.com/stretchr/testify/assert"
 )
@@ -91,6 +92,55 @@ func TestAuthenticate(t *testing.T) {
 
 			// act
 			res, err := endpoints.Authenticate(ctx, tc.data)
+
+			// assert
+			assert.Equal(tc.res, res)
+			assert.Equal(tc.err, err)
+		})
+	}
+}
+
+func TestUpdateUser(t *testing.T) {
+	grpc_user_srv_mock := new(transport.GrpcUserSrvMock)
+
+	endpoints := transport.MakeGrpcUserServiceEndpoints(grpc_user_srv_mock)
+
+	test_cases := []struct {
+		test_name string
+		data      transport.UpdateUserRequest
+		res       entities.User
+		err       error
+	}{
+		{
+			test_name: "update user successfully",
+			data: transport.UpdateUserRequest{
+				Id: 1,
+				Information: map[string]interface{}{
+					"email":     "new_email@domain.com",
+					"passsword": "new_password",
+					"age":       25,
+				},
+			},
+			res: entities.User{
+				Email:     "new_email@domain.com",
+				Password:  "new_password",
+				Age:       25,
+				ExtraInfo: "",
+			},
+			err: nil,
+		},
+	}
+
+	for _, tc := range test_cases {
+		t.Run(tc.test_name, func(t *testing.T) {
+			// prepare
+			assert := assert.New(t)
+			ctx := context.Background()
+
+			grpc_user_srv_mock.On("UpdateUser", ctx, tc.data.Id, tc.data.Information).Return(tc.res, tc.err)
+
+			// act
+			res, err := endpoints.UpdateUser(ctx, tc.data)
 
 			// assert
 			assert.Equal(tc.res, res)

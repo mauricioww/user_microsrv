@@ -14,6 +14,7 @@ import (
 type GrpcUserService interface {
 	CreateUser(ctx context.Context, email string, pwd string, extra_info string, age int) (string, error)
 	Authenticate(ctx context.Context, email string, pwd string) (int, error)
+	UpdateUser(ctx context.Context, id int, fields map[string]interface{}) (entities.User, error)
 }
 
 type grpcUserService struct {
@@ -58,7 +59,7 @@ func (g *grpcUserService) Authenticate(ctx context.Context, email string, pwd st
 		Password: pwd,
 	}
 
-	hashed_pwd, err := g.reepository.Authenticate(ctx, &auth)
+	hashed_pwd, err := g.repository.Authenticate(ctx, &auth)
 
 	if err != nil {
 		level.Error(logger).Log("ERROR", err)
@@ -70,4 +71,22 @@ func (g *grpcUserService) Authenticate(ctx context.Context, email string, pwd st
 	}
 
 	return auth.Id, nil
+}
+
+func (g *grpcUserService) UpdateUser(ctx context.Context, id int, fields map[string]interface{}) (entities.User, error) {
+	logger := log.With(g.logger, "GRPC_USER_SERVICE: method", "update_service")
+
+	update_info := entities.Update{
+		UserId:      id,
+		Information: fields,
+	}
+
+	user, err := g.repository.UpdateUser(ctx, update_info)
+
+	if err != nil {
+		level.Error(logger).Log("ERROR", err)
+		return entities.User{}, err
+	}
+
+	return user, nil
 }

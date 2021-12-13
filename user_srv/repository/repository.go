@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"strconv"
 
 	"github.com/go-kit/kit/log"
@@ -19,11 +20,21 @@ const (
 	authenticate_sql = `
 		SELECT u.id, u.password FROM usr_service u WHERE u.email = ?
 	`
+
+	update_user_field_sql = `
+		UPDATE usr_service SET %v = ? WHERE id = ? 
+	`
+
+	get_user_by_id = `
+		SELECT u.email, u.password, u.age, u.extra_info 
+			FROM user_service u WHERE u.id = ?
+	`
 )
 
 type UserSrvRepository interface {
 	CreateUser(ctx context.Context, user entities.User) (string, error)
 	Authenticate(ctx context.Context, session *entities.Session) (string, error)
+	UpdateUser(ctx context.Context, information entities.Update) (entities.User, error)
 }
 
 type userSrvRepository struct {
@@ -63,4 +74,20 @@ func (r userSrvRepository) Authenticate(ctx context.Context, session *entities.S
 	}
 
 	return hash, nil
+}
+
+func (r userSrvRepository) UpdateUser(ctx context.Context, update entities.Update) (entities.User, error) {
+	for field, value := range update.Information {
+		query := fmt.Sprintf(update_user_field_sql, field)
+		_, err := r.db.ExecContext(ctx, query, value, update.UserId)
+
+		if err != nil {
+			return entities.User{}, err
+		}
+	}
+
+	var u entities.User
+	_ = r.db.QueryRow(get_user_by_id, update.UserId).Scan(&u.Email, &u.Password, &u.Age, &u.ExtraInfo)
+
+	return u, nil
 }

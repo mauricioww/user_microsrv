@@ -22,3 +22,9 @@ func (r *UserRepositoryMock) Authenticate(ctx context.Context, session *entities
 
 	return args.String(0), args.Error(1)
 }
+
+func (r *UserRepositoryMock) UpdateUser(ctx context.Context, update entities.Update) (entities.User, error) {
+	args := r.Called(ctx, update)
+
+	return args.Get(0).(entities.User), args.Error(1)
+}

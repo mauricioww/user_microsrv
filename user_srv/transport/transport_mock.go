@@ -3,6 +3,7 @@ package transport
 import (
 	"context"
 
+	"github.com/mauricioww/user_microsrv/user_srv/entities"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -20,4 +21,10 @@ func (s *GrpcUserSrvMock) Authenticate(ctx context.Context, email string, pwd st
 	args := s.Called(ctx, email, pwd)
 
 	return args.Int(0), args.Error(1)
+}
+
+func (s *GrpcUserSrvMock) UpdateUser(ctx context.Context, id int, fields map[string]interface{}) (entities.User, error) {
+	args := s.Called(ctx, id, fields)
+
+	return args.Get(0).(entities.User), args.Error(1)
 }
