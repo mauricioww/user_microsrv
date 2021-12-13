@@ -11,7 +11,6 @@ import (
 	"github.com/mauricioww/user_microsrv/user_srv/service"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func TestCreateUser(t *testing.T) {
@@ -106,7 +105,7 @@ func TestAuthenticate(t *testing.T) {
 				Email:    "user@email.com",
 				Password: "secret",
 			},
-			repo_pwd: "fake_password",
+			repo_pwd: "secret",
 		},
 		{
 			test_name: "user not found error",
@@ -125,7 +124,7 @@ func TestAuthenticate(t *testing.T) {
 				Email:    "user@email.com",
 				Password: "fakee_password",
 			},
-			repo_pwd: "incorrrect_password",
+			repo_pwd: "incorrect_password",
 			res:      -1,
 			err:      errors.New("Password error"),
 		},
@@ -139,13 +138,86 @@ func TestAuthenticate(t *testing.T) {
 			// invalid data
 
 			// act
-			h, _ := bcrypt.GenerateFromPassword([]byte(tc.repo_pwd), bcrypt.DefaultCost)
-			user_repo_mock.On("Authenticate", ctx, tc.data).Return(string(h), tc.repo_err)
+			user_repo_mock.On("Authenticate", ctx, tc.data).Return(tc.repo_pwd, tc.repo_err)
 			res, err := grpc_user_srv.Authenticate(ctx, tc.data.Email, tc.data.Password)
 
 			// assert
 			assert.Equal(tc.res, res)
 			assert.Equal(tc.err, err)
+		})
+	}
+}
+
+func TestUpdateUser(t *testing.T) {
+	var logger log.Logger
+	{
+		logger = log.NewLogfmtLogger(os.Stderr)
+		logger = log.NewSyncLogger(logger)
+		logger = log.With(
+			logger,
+			"service",
+			"account",
+			"time",
+			log.DefaultTimestampUTC,
+			"caller",
+			log.DefaultCaller,
+		)
+	}
+
+	var grpc_user_srv service.GrpcUserService
+
+	user_repo_mock := new(service.UserRepositoryMock)
+	grpc_user_srv = service.NewGrpcUserService(user_repo_mock, logger)
+
+	test_cases := []struct {
+		test_name string
+		data      entities.Update
+		res       entities.User
+		err       error
+	}{
+		{
+			test_name: "update any field",
+			data: entities.Update{
+				UserId: 0,
+				Information: map[string]interface{}{
+					"email": "new_email@domain.com",
+				},
+			},
+			res: entities.User{
+				Email: "new_email@domain.com",
+			},
+			err: nil,
+		},
+		{
+			test_name: "update one string and integer field",
+			data: entities.Update{
+				UserId: 0,
+				Information: map[string]interface{}{
+					"password": "new_password",
+					"age":      23,
+				},
+			},
+			res: entities.User{
+				Password: "new_password",
+				Age:      23,
+			},
+			err: nil,
+		},
+	}
+
+	for _, tc := range test_cases {
+		t.Run(tc.test_name, func(t *testing.T) {
+			// prepare
+			ctx := context.Background()
+			assert := assert.New(t)
+
+			// act
+			user_repo_mock.On("UpdateUser", ctx, tc.data).Return(tc.res, tc.err)
+			res, err := grpc_user_srv.UpdateUser(ctx, tc.data.UserId, tc.data.Information)
+
+			// assert
+			assert.Equal(tc.err, err)
+			assert.Equal(tc.res, res)
 		})
 	}
 }

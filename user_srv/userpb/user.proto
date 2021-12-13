@@ -22,7 +22,25 @@ message AuthenticateResponse {
     int32 user_id = 1;
 }
 
+message UpdateUserRequest {
+    uint32 id = 1;
+    string email = 2;
+    string password = 3;
+    uint32 age = 4;
+    string additional_information = 5;
+
+    repeated string fields = 6;
+}
+
+message UpdateUserResponse {
+    string email = 1;
+    string password = 2;
+    uint32 age = 3;
+    string additional_information = 4;
+}
+
 service UserService {
     rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {};
     rpc Authenticate(AuthenticateRequest) returns (AuthenticateResponse) {};
+    rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse) {};
 }

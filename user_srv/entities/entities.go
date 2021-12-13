@@ -13,4 +13,9 @@ type (
 		Password string
 		Id       int
 	}
+
+	Update struct {
+		UserId      int
+		Information map[string]interface{}
+	}
 )

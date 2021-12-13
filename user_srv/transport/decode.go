@@ -12,4 +12,9 @@ type (
 		Email    string
 		Password string
 	}
+
+	UpdateUserRequest struct {
+		Id          int
+		Information map[string]interface{}
+	}
 )
