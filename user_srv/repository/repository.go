@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"strconv"
 
 	"github.com/go-kit/kit/log"
@@ -21,13 +20,14 @@ const (
 		SELECT u.id, u.password FROM usr_service u WHERE u.email = ?
 	`
 
-	update_user_field_sql = `
-		UPDATE usr_service SET %v = ? WHERE id = ? 
+	update_user_sql = `
+		UPDATE usr_service SET email = ?, password = ?, age = ?, extra_info = ?
+			WHERE id = ? 
 	`
 
 	get_user_by_id = `
-		SELECT u.email, u.password, u.age, u.extra_info 
-			FROM user_service u WHERE u.id = ?
+		SELECT u.email, u.age, u.extra_info 
+			FROM usr_service u WHERE u.id = ?
 	`
 )
 
@@ -77,17 +77,14 @@ func (r userSrvRepository) Authenticate(ctx context.Context, session *entities.S
 }
 
 func (r userSrvRepository) UpdateUser(ctx context.Context, update entities.Update) (entities.User, error) {
-	for field, value := range update.Information {
-		query := fmt.Sprintf(update_user_field_sql, field)
-		_, err := r.db.ExecContext(ctx, query, value, update.UserId)
+	_, err := r.db.ExecContext(ctx, update_user_sql, update.Email, update.Password, update.Age, update.ExtraInfo, update.UserId)
 
-		if err != nil {
-			return entities.User{}, err
-		}
+	if err != nil {
+		return entities.User{}, errors.New("Internal Error")
 	}
 
-	var u entities.User
-	_ = r.db.QueryRow(get_user_by_id, update.UserId).Scan(&u.Email, &u.Password, &u.Age, &u.ExtraInfo)
+	u := entities.User{}
+	_ = r.db.QueryRow(get_user_by_id, update.UserId).Scan(&u.Email, &u.Age, &u.ExtraInfo)
 
 	return u, nil
 }

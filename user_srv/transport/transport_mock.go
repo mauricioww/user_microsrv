@@ -23,8 +23,8 @@ func (s *GrpcUserSrvMock) Authenticate(ctx context.Context, email string, pwd st
 	return args.Int(0), args.Error(1)
 }
 
-func (s *GrpcUserSrvMock) UpdateUser(ctx context.Context, id int, fields map[string]interface{}) (entities.User, error) {
-	args := s.Called(ctx, id, fields)
+func (s *GrpcUserSrvMock) UpdateUser(ctx context.Context, id int, email string, pwd string, extra_info string, age int) (entities.User, error) {
+	args := s.Called(ctx, id, email, pwd, extra_info, age)
 
 	return args.Get(0).(entities.User), args.Error(1)
 }

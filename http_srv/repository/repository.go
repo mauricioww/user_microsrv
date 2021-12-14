@@ -14,6 +14,7 @@ import (
 type HttpRepository interface {
 	CreateUser(ctx context.Context, user entities.User) (string, error)
 	Authenticate(ctx context.Context, session entities.Session) (int, error)
+	UpdateUser(ctx context.Context, user entities.UserUpdate) (entities.User, error)
 }
 
 type httpRepository struct {
@@ -53,7 +54,7 @@ func (hr httpRepository) CreateUser(ctx context.Context, user entities.User) (st
 }
 
 func (hr httpRepository) Authenticate(ctx context.Context, session entities.Session) (int, error) {
-	logger := log.With(hr.logger, "method", "create_users")
+	logger := log.With(hr.logger, "method", "authenticate_user")
 
 	if session.Email == "" || session.Password == "" {
 		return -1, errors.New("Email or Password empty")
@@ -71,4 +72,32 @@ func (hr httpRepository) Authenticate(ctx context.Context, session entities.Sess
 	}
 
 	return int(grpc_response.GetUserId()), nil
+}
+
+func (hr httpRepository) UpdateUser(ctx context.Context, user entities.UserUpdate) (entities.User, error) {
+	logger := log.With(hr.logger, "method", "update_user")
+
+	grpc_request := userpb.UpdateUserRequest{
+		Id:                    uint32(user.UserId),
+		Email:                 user.Email,
+		Password:              user.Password,
+		Age:                   uint32(user.Age),
+		AdditionalInformation: user.ExtraInfo,
+	}
+
+	grpc_response, err := hr.client.UpdateUser(ctx, &grpc_request)
+
+	if err != nil {
+		level.Error(logger).Log("err", err)
+		return entities.User{}, err
+	}
+
+	u := entities.User{
+		Email:     grpc_response.GetEmail(),
+		Password:  grpc_response.GetPassword(),
+		Age:       int(grpc_response.GetAge()),
+		ExtraInfo: grpc_response.AdditionalInformation,
+	}
+
+	return u, nil
 }
