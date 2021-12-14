@@ -112,7 +112,6 @@ func decodeUpdateUserRequest(ctx context.Context, r *http.Request) (interface{},
 	}
 
 	request.UserId = id
-	fmt.Println(request)
 	return request, nil
 }
 

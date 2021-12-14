@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"time"
 
@@ -100,8 +99,6 @@ func (hs httpService) UpdateUser(ctx context.Context, user_id int, email string,
 			Age:       age,
 		},
 	}
-
-	fmt.Println(info_update)
 
 	res, err := hs.repository.UpdateUser(ctx, info_update)
 
