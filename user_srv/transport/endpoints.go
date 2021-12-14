@@ -40,7 +40,7 @@ func makeAuthenticateEndpoint(srv service.GrpcUserService) endpoint.Endpoint {
 func makeUpdateUserEndpoint(srv service.GrpcUserService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req, _ := request.(UpdateUserRequest)
-		res, err := srv.UpdateUser(ctx, req.Id, req.Information)
+		res, err := srv.UpdateUser(ctx, req.Id, req.Email, req.Password, req.ExtraInfo, req.Age)
 		return res, err
 	}
 }

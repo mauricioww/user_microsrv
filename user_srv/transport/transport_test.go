@@ -114,12 +114,10 @@ func TestUpdateUser(t *testing.T) {
 		{
 			test_name: "update user successfully",
 			data: transport.UpdateUserRequest{
-				Id: 1,
-				Information: map[string]interface{}{
-					"email":     "new_email@domain.com",
-					"passsword": "new_password",
-					"age":       25,
-				},
+				Id:       1,
+				Email:    "new_email@domain.com",
+				Password: "new_password",
+				Age:      25,
 			},
 			res: entities.User{
 				Email:     "new_email@domain.com",
@@ -137,7 +135,7 @@ func TestUpdateUser(t *testing.T) {
 			assert := assert.New(t)
 			ctx := context.Background()
 
-			grpc_user_srv_mock.On("UpdateUser", ctx, tc.data.Id, tc.data.Information).Return(tc.res, tc.err)
+			grpc_user_srv_mock.On("UpdateUser", ctx, tc.data.Id, tc.data.Email, tc.data.Password, tc.data.ExtraInfo, tc.data.Age).Return(tc.res, tc.err)
 
 			// act
 			res, err := endpoints.UpdateUser(ctx, tc.data)

@@ -14,7 +14,10 @@ type (
 	}
 
 	UpdateUserRequest struct {
-		Id          int
-		Information map[string]interface{}
+		Id        int
+		Email     string
+		Password  string
+		Age       int
+		ExtraInfo string
 	}
 )

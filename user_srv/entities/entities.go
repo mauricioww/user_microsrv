@@ -15,7 +15,7 @@ type (
 	}
 
 	Update struct {
-		UserId      int
-		Information map[string]interface{}
+		UserId int
+		User
 	}
 )

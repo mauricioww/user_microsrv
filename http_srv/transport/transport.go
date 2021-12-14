@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
@@ -22,6 +23,12 @@ func NewHTTPServer(ctx context.Context, http_endpoints HttpEndpoints) http.Handl
 	user_router.Methods("POST").Handler(http_gokit.NewServer(
 		http_endpoints.CreateUser,
 		decodeCreateUserRequest,
+		encodeResponse,
+	))
+
+	user_router.Methods("PUT").Path("/{id}").Handler(http_gokit.NewServer(
+		http_endpoints.UpdateUser,
+		decodeUpdateUserRequest,
 		encodeResponse,
 	))
 
@@ -73,6 +80,15 @@ func authMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+func decodeCreateUserRequest(ctx context.Context, r *http.Request) (interface{}, error) {
+	var request CreateUserRequest
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		return nil, err
+	}
+	return request, nil
+}
+
 func decodeAuthenticateRequest(ctx context.Context, r *http.Request) (interface{}, error) {
 	var request AuthenticateRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
@@ -82,12 +98,20 @@ func decodeAuthenticateRequest(ctx context.Context, r *http.Request) (interface{
 	return request, nil
 }
 
-func decodeCreateUserRequest(ctx context.Context, r *http.Request) (interface{}, error) {
-	var request CreateUserRequest
-	err := json.NewDecoder(r.Body).Decode(&request)
+func decodeUpdateUserRequest(ctx context.Context, r *http.Request) (interface{}, error) {
+	var request UpdateUserRequest
+	id_param := mux.Vars(r)["id"]
+	id, err := strconv.Atoi(id_param)
+
+	if err != nil {
+		return nil, nil
+	}
+	err = json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		return nil, err
 	}
+
+	request.UserId = id
 	return request, nil
 }
 

@@ -124,7 +124,7 @@ func TestAuthenticate(t *testing.T) {
 	test_cases := []struct {
 		test_name string
 		data      entities.Session
-		res       string
+		res       int
 		err       error
 	}{
 		{
@@ -133,7 +133,7 @@ func TestAuthenticate(t *testing.T) {
 				Email:    "fake_email@email.com",
 				Password: "fake_password",
 			},
-			res: "auth_token",
+			res: 1,
 			err: nil,
 		},
 		{
@@ -141,6 +141,7 @@ func TestAuthenticate(t *testing.T) {
 			data: entities.Session{
 				Password: "fake_password",
 			},
+			res: -1,
 			err: errors.New("Email or Password empty!"),
 		},
 		{
@@ -148,6 +149,7 @@ func TestAuthenticate(t *testing.T) {
 			data: entities.Session{
 				Email: "fake_email@email.com",
 			},
+			res: -1,
 			err: errors.New("Email or Password empty!"),
 		},
 		{
@@ -156,7 +158,7 @@ func TestAuthenticate(t *testing.T) {
 				Email:    "no_real@email.com",
 				Password: "fake_password",
 			},
-			res: "",
+			res: -1,
 			err: errors.New("User not found"),
 		},
 		{
@@ -165,7 +167,7 @@ func TestAuthenticate(t *testing.T) {
 				Email:    "user@email.com",
 				Password: "invalid_password",
 			},
-			res: "",
+			res: -1,
 			err: errors.New("Invalid user"),
 		},
 	}
@@ -175,7 +177,109 @@ func TestAuthenticate(t *testing.T) {
 			//  prepare
 			assert := assert.New(t)
 
-			assert.Equal(true, true)
+			ctx := context.Background()
+
+			grpc_req := &userpb.AuthenticateRequest{
+				Email:    tc.data.Email,
+				Password: tc.data.Password,
+			}
+
+			grpc_res := &userpb.AuthenticateResponse{UserId: int32(tc.res)}
+			grpc_mock.On("Authenticate", ctx, grpc_req).Return(grpc_res, tc.err)
+
+			// act
+			res, err := grpc_mock.Authenticate(ctx, grpc_req)
+
+			// assert
+			assert.Equal(res.GetUserId(), int32(tc.res))
+			assert.Equal(err, tc.err)
+		})
+	}
+}
+
+func UpdateUser(t *testing.T) {
+	var logger log.Logger
+	{
+		logger = log.NewLogfmtLogger(os.Stderr)
+		logger = log.NewSyncLogger(logger)
+		logger = log.With(
+			logger,
+			"service",
+			"account",
+			"time",
+			log.DefaultTimestampUTC,
+			"caller",
+			log.DefaultCaller,
+		)
+	}
+
+	grpc_mock := new(repository.GrpcMock)
+	conn, _ := grpc.DialContext(context.Background(), "", grpc.WithInsecure(), grpc.WithContextDialer(repository.Dialer(grpc_mock)))
+	defer conn.Close()
+
+	// http_repository := repository.NewHttpRepository(conn, logger)
+
+	test_cases := []struct {
+		test_name string
+		fields    []string
+		prev_user entities.User
+		aft_user  entities.User
+		err       error
+	}{
+		{
+			test_name: "Update email successfully",
+			prev_user: entities.User{
+				Email: "user@email.com",
+			},
+			fields: []string{"email"},
+			aft_user: entities.User{
+				Email: "new_email@domain.com",
+			},
+			err: nil,
+		},
+		{
+			test_name: "Update email and password successfully",
+			prev_user: entities.User{
+				Email:    "user@email.com",
+				Password: "password",
+			},
+			fields: []string{"email", "password"},
+			aft_user: entities.User{
+				Email:    "new_email@domain.com",
+				Password: "new_password",
+			},
+			err: nil,
+		},
+	}
+
+	for _, tc := range test_cases {
+		t.Run(tc.test_name, func(t *testing.T) {
+			//  prepare
+			ctx := context.Background()
+			assert := assert.New(t)
+
+			grpc_req := &userpb.UpdateUserRequest{
+				Email:                 tc.prev_user.Email,
+				Password:              tc.prev_user.Password,
+				Age:                   uint32(tc.prev_user.Age),
+				AdditionalInformation: tc.prev_user.ExtraInfo,
+				Fields:                tc.fields,
+			}
+
+			grpc_res := &userpb.UpdateUserResponse{
+				Email:                 tc.aft_user.Email,
+				Password:              tc.aft_user.Password,
+				Age:                   uint32(tc.aft_user.Age),
+				AdditionalInformation: tc.aft_user.ExtraInfo,
+			}
+			grpc_mock.On("UpdateUser", ctx, grpc_req).Return(grpc_res, tc.err)
+
+			// act
+			res, err := grpc_mock.UpdateUser(ctx, grpc_req)
+
+			// assert
+			assert.Equal(res, grpc_res)
+			assert.Equal(err, tc.err)
 		})
 	}
 }

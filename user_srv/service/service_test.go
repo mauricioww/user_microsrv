@@ -11,6 +11,7 @@ import (
 	"github.com/mauricioww/user_microsrv/user_srv/service"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func TestCreateUser(t *testing.T) {
@@ -135,7 +136,8 @@ func TestAuthenticate(t *testing.T) {
 			// prepare
 			ctx := context.Background()
 			assert := assert.New(t)
-			// invalid data
+			hash, _ := bcrypt.GenerateFromPassword([]byte(tc.repo_pwd), bcrypt.DefaultCost)
+			tc.repo_pwd = string(hash)
 
 			// act
 			user_repo_mock.On("Authenticate", ctx, tc.data).Return(tc.repo_pwd, tc.repo_err)
@@ -179,27 +181,14 @@ func TestUpdateUser(t *testing.T) {
 			test_name: "update any field",
 			data: entities.Update{
 				UserId: 0,
-				Information: map[string]interface{}{
-					"email": "new_email@domain.com",
+				User: entities.User{
+					Email:    "new_email@domain.com",
+					Password: "new_password",
 				},
 			},
 			res: entities.User{
-				Email: "new_email@domain.com",
-			},
-			err: nil,
-		},
-		{
-			test_name: "update one string and integer field",
-			data: entities.Update{
-				UserId: 0,
-				Information: map[string]interface{}{
-					"password": "new_password",
-					"age":      23,
-				},
-			},
-			res: entities.User{
+				Email:    "new_email@domain.com",
 				Password: "new_password",
-				Age:      23,
 			},
 			err: nil,
 		},
@@ -212,8 +201,8 @@ func TestUpdateUser(t *testing.T) {
 			assert := assert.New(t)
 
 			// act
-			user_repo_mock.On("UpdateUser", ctx, tc.data).Return(tc.res, tc.err)
-			res, err := grpc_user_srv.UpdateUser(ctx, tc.data.UserId, tc.data.Information)
+			user_repo_mock.On("UpdateUser", ctx, mock.AnythingOfType("entities.Update")).Return(tc.res, tc.err)
+			res, err := grpc_user_srv.UpdateUser(ctx, tc.data.UserId, tc.data.Email, tc.data.Password, tc.data.ExtraInfo, tc.data.Age)
 
 			// assert
 			assert.Equal(tc.err, err)

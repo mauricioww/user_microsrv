@@ -88,27 +88,12 @@ func decodeUpdateUserRequest(_ context.Context, request interface{}) (interface{
 		return nil, errors.New("No 'UpdateUserRequest' type")
 	}
 
-	get_data := func(f string) interface{} {
-		if f == "email" {
-			return update_pb.GetEmail()
-		} else if f == "password" {
-			return update_pb.GetPassword()
-		} else if f == "age" {
-			return update_pb.GetAge()
-		} else {
-			return update_pb.GetAdditionalInformation()
-		}
-	}
-
-	info := make(map[string]interface{})
-
-	for _, field := range update_pb.GetFields() {
-		info[field] = get_data(field)
-	}
-
 	req := UpdateUserRequest{
-		Id:          int(update_pb.GetId()),
-		Information: info,
+		Id:        int(update_pb.GetId()),
+		Email:     update_pb.GetEmail(),
+		Password:  update_pb.GetPassword(),
+		Age:       int(update_pb.GetAge()),
+		ExtraInfo: update_pb.GetAdditionalInformation(),
 	}
 
 	return req, nil
@@ -146,7 +131,7 @@ func (g *gRPCServer) Authenticate(ctx context.Context, req *userpb.AuthenticateR
 }
 
 func (g *gRPCServer) UpdateUser(ctx context.Context, req *userpb.UpdateUserRequest) (*userpb.UpdateUserResponse, error) {
-	_, res, err := g.authenticate.ServeGRPC(ctx, req)
+	_, res, err := g.updateUser.ServeGRPC(ctx, req)
 
 	if err != nil {
 		return nil, err

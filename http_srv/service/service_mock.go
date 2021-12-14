@@ -22,3 +22,9 @@ func (r *RepoMock) Authenticate(ctx context.Context, session entities.Session) (
 
 	return args.Int(0), args.Error(1)
 }
+
+func (r *RepoMock) UpdateUser(ctx context.Context, user entities.UserUpdate) (entities.User, error) {
+	args := r.Called(ctx, user)
+
+	return args.Get(0).(entities.User), args.Error(1)
+}

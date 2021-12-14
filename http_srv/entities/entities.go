@@ -12,4 +12,9 @@ type (
 		Email    string
 		Password string
 	}
+
+	UserUpdate struct {
+		UserId int
+		User
+	}
 )

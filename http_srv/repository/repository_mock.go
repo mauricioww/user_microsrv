@@ -37,3 +37,15 @@ func (m *GrpcMock) CreateUser(ctx context.Context, req *userpb.CreateUserRequest
 
 	return args.Get(0).(*userpb.CreateUserResponse), args.Error(1)
 }
+
+func (m *GrpcMock) Authenticate(ctx context.Context, req *userpb.AuthenticateRequest) (*userpb.AuthenticateResponse, error) {
+	args := m.Called(ctx, req)
+
+	return args.Get(0).(*userpb.AuthenticateResponse), args.Error(1)
+}
+
+func (m *GrpcMock) UpdateUser(ctx context.Context, req *userpb.UpdateUserRequest) (*userpb.UpdateUserResponse, error) {
+	args := m.Called(ctx, req)
+
+	return args.Get(0).(*userpb.UpdateUserResponse), args.Error(1)
+}
