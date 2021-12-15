@@ -28,3 +28,9 @@ func (s *GrpcUserSrvMock) UpdateUser(ctx context.Context, id int, email string, 
 
 	return args.Get(0).(entities.User), args.Error(1)
 }
+
+func (s *GrpcUserSrvMock) GetUser(ctx context.Context, id int) (entities.User, error) {
+	args := s.Called(ctx, id)
+
+	return args.Get(0).(entities.User), args.Error(1)
+}

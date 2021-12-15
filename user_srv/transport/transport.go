@@ -13,6 +13,8 @@ type gRPCServer struct {
 	createUser   grpc_gokit.Handler
 	authenticate grpc_gokit.Handler
 	updateUser   grpc_gokit.Handler
+	getUser      grpc_gokit.Handler
+
 	userpb.UnimplementedUserServiceServer
 }
 
@@ -34,6 +36,12 @@ func NewGrpcUserServer(grpc_endpoints GrpcUserServiceEndpoints) userpb.UserServi
 			grpc_endpoints.UpdateUser,
 			decodeUpdateUserRequest,
 			encondeUpdatUserResponse,
+		),
+
+		getUser: grpc_gokit.NewServer(
+			grpc_endpoints.GetUser,
+			decodeGetUserRequest,
+			encodeGetUserResponse,
 		),
 	}
 }
@@ -110,6 +118,31 @@ func encondeUpdatUserResponse(_ context.Context, response interface{}) (interfac
 	}, nil
 }
 
+func decodeGetUserRequest(_ context.Context, request interface{}) (interface{}, error) {
+	res, ok := request.(*userpb.GetUserRequest)
+
+	if !ok {
+		return nil, errors.New("No 'GetUserRequest' type")
+	}
+
+	req := GetUserRequest{
+		UserId: int(res.GetId()),
+	}
+
+	return req, nil
+}
+
+func encodeGetUserResponse(_ context.Context, response interface{}) (interface{}, error) {
+	res := response.(entities.User)
+
+	return &userpb.GetUserResponse{
+		Email:                 res.Email,
+		Password:              res.Password,
+		Age:                   uint32(res.Age),
+		AdditionalInformation: res.ExtraInfo,
+	}, nil
+}
+
 func (g *gRPCServer) CreateUser(ctx context.Context, req *userpb.CreateUserRequest) (*userpb.CreateUserResponse, error) {
 	_, res, err := g.createUser.ServeGRPC(ctx, req)
 
@@ -138,4 +171,14 @@ func (g *gRPCServer) UpdateUser(ctx context.Context, req *userpb.UpdateUserReque
 	}
 
 	return res.(*userpb.UpdateUserResponse), nil
+}
+
+func (g *gRPCServer) GetUser(ctx context.Context, req *userpb.GetUserRequest) (*userpb.GetUserResponse, error) {
+	_, res, err := g.getUser.ServeGRPC(ctx, req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return res.(*userpb.GetUserResponse), nil
 }

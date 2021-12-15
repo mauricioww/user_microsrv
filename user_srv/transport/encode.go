@@ -15,4 +15,11 @@ type (
 		Age       int
 		ExtraInfo string
 	}
+
+	GetUserResponse struct {
+		Email     string
+		Password  string
+		Age       int
+		ExtraInfo string
+	}
 )
