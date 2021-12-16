@@ -20,4 +20,12 @@ type (
 		Age       int    `json:"age"`
 		ExtraInfo string `json:"extra_information"`
 	}
+
+	GetUserResponse struct {
+		Id        int    `json:"user_id"`
+		Email     string `json:"email"`
+		Password  string `json:"password"`
+		Age       int    `json:"age"`
+		ExtraInfo string `json:"extra_information"`
+	}
 )

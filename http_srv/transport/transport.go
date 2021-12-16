@@ -3,6 +3,7 @@ package transport
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -18,7 +19,13 @@ func NewHTTPServer(ctx context.Context, http_endpoints HttpEndpoints) http.Handl
 	r.Use(middleware)
 
 	user_router := r.PathPrefix("/user").Subrouter()
-	user_router.Use(authMiddleware)
+	// user_router.Use(authMiddleware)
+
+	user_router.Methods("GET").Path("/{id}").Handler(http_gokit.NewServer(
+		http_endpoints.GetUser,
+		decodeGetUserRequest,
+		encodeResponse,
+	))
 
 	user_router.Methods("POST").Handler(http_gokit.NewServer(
 		http_endpoints.CreateUser,
@@ -112,6 +119,21 @@ func decodeUpdateUserRequest(ctx context.Context, r *http.Request) (interface{},
 	}
 
 	request.UserId = id
+	return request, nil
+}
+
+func decodeGetUserRequest(ctx context.Context, r *http.Request) (interface{}, error) {
+	var request GetUserRequest
+	if id_param := mux.Vars(r)["id"]; id_param == "" {
+		res := map[string]string{"error": "No Auth Token!"}
+		return res, errors.New("No user_id")
+	} else {
+		if id, err := strconv.Atoi(id_param); err != nil {
+			return nil, err
+		} else {
+			request = GetUserRequest{UserId: id}
+		}
+	}
 	return request, nil
 }
 

@@ -24,7 +24,13 @@ func (s *ServiceMock) Authenticate(ctx context.Context, email string, pwd string
 }
 
 func (s *ServiceMock) UpdateUser(ctx context.Context, user_id int, email string, pwd string, extra_info string, age int) (entities.User, error) {
-	args := s.Called(ctx, email, pwd, extra_info, age)
+	args := s.Called(ctx, user_id, email, pwd, extra_info, age)
+
+	return args.Get(0).(entities.User), args.Error(1)
+}
+
+func (s *ServiceMock) GetUser(ctx context.Context, user_id int) (entities.User, error) {
+	args := s.Called(ctx, user_id)
 
 	return args.Get(0).(entities.User), args.Error(1)
 }

@@ -280,3 +280,77 @@ func UpdateUser(t *testing.T) {
 		})
 	}
 }
+
+func TestGetUser(t *testing.T) {
+	var logger log.Logger
+	{
+		logger = log.NewLogfmtLogger(os.Stderr)
+		logger = log.NewSyncLogger(logger)
+		logger = log.With(
+			logger,
+			"service",
+			"account",
+			"time",
+			log.DefaultTimestampUTC,
+			"caller",
+			log.DefaultCaller,
+		)
+	}
+
+	grpc_mock := new(repository.GrpcMock)
+	conn, _ := grpc.DialContext(context.Background(), "", grpc.WithInsecure(), grpc.WithContextDialer(repository.Dialer(grpc_mock)))
+	defer conn.Close()
+
+	test_cases := []struct {
+		test_name string
+		data      int
+		res       entities.User
+		err       error
+	}{
+		{
+			test_name: "user found",
+			data:      1,
+			res: entities.User{
+				Email:     "email@domain.com",
+				Password:  "password",
+				Age:       10,
+				ExtraInfo: "extra_info",
+			},
+			err: nil,
+		},
+		{
+			test_name: "user not found",
+			data:      -1,
+			res:       entities.User{},
+			err:       errors.New("User not found"),
+		},
+	}
+
+	for _, tc := range test_cases {
+		t.Run(tc.test_name, func(t *testing.T) {
+			//  prepare
+			assert := assert.New(t)
+
+			ctx := context.Background()
+
+			grpc_req := &userpb.GetUserRequest{
+				Id: uint32(tc.data),
+			}
+
+			grpc_res := &userpb.GetUserResponse{
+				Email:                 tc.res.Email,
+				Password:              tc.res.Password,
+				Age:                   uint32(tc.res.Age),
+				AdditionalInformation: tc.res.ExtraInfo,
+			}
+			grpc_mock.On("GetUser", ctx, grpc_req).Return(grpc_res, tc.err)
+
+			// act
+			res, err := grpc_mock.GetUser(ctx, grpc_req)
+
+			// assert
+			assert.Equal(res, grpc_res)
+			assert.Equal(err, tc.err)
+		})
+	}
+}

@@ -20,4 +20,8 @@ type (
 		Age       int    `json:"age"`
 		ExtraInfo string `json:"additional_information"`
 	}
+
+	GetUserRequest struct {
+		UserId int
+	}
 )

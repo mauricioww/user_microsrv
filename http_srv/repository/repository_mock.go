@@ -49,3 +49,9 @@ func (m *GrpcMock) UpdateUser(ctx context.Context, req *userpb.UpdateUserRequest
 
 	return args.Get(0).(*userpb.UpdateUserResponse), args.Error(1)
 }
+
+func (m *GrpcMock) GetUser(ctx context.Context, req *userpb.GetUserRequest) (*userpb.GetUserResponse, error) {
+	args := m.Called(ctx, req)
+
+	return args.Get(0).(*userpb.GetUserResponse), args.Error(1)
+}

@@ -28,3 +28,9 @@ func (r *RepoMock) UpdateUser(ctx context.Context, user entities.UserUpdate) (en
 
 	return args.Get(0).(entities.User), args.Error(1)
 }
+
+func (r *RepoMock) GetUser(ctx context.Context, id int) (entities.User, error) {
+	args := r.Called(ctx, id)
+
+	return args.Get(0).(entities.User), args.Error(1)
+}

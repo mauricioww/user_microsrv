@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/mauricioww/user_microsrv/http_srv/entities"
 	"github.com/mauricioww/user_microsrv/http_srv/transport"
 	"github.com/stretchr/testify/assert"
 )
@@ -160,5 +161,107 @@ func TestAuthenticate(t *testing.T) {
 			assert.Equal(tc.res, res)
 			assert.Equal(tc.err, err)
 		})
+	}
+}
+
+func TestUpdateUser(t *testing.T) {
+	http_srv_mock := new(transport.ServiceMock)
+
+	endpoints := transport.MakeHttpEndpoints(http_srv_mock)
+
+	test_cases := []struct {
+		test_name string
+		data      transport.UpdateUserRequest
+		res       transport.UpdateUserResponse
+		user_res  entities.User
+		err       error
+	}{
+		{
+			test_name: "update user success",
+			data: transport.UpdateUserRequest{
+				UserId:    1,
+				Email:     "new_email@domain.com",
+				Password:  "new_password",
+				Age:       23,
+				ExtraInfo: "new_extra_info",
+			},
+			user_res: entities.User{
+				Email:     "new_email@domain.com",
+				Password:  "new_password",
+				Age:       23,
+				ExtraInfo: "new_extra_info",
+			},
+			res: transport.UpdateUserResponse{
+				Id:        1,
+				Email:     "new_email@domain.com",
+				Password:  "new_password",
+				Age:       23,
+				ExtraInfo: "new_extra_info",
+			},
+		},
+	}
+
+	for _, tc := range test_cases {
+		// prepare
+		ctx := context.Background()
+		assert := assert.New(t)
+
+		http_srv_mock.On("UpdateUser", ctx, tc.data.UserId, tc.data.Email, tc.data.Password, tc.data.ExtraInfo, tc.data.Age).Return(tc.user_res, tc.err)
+
+		// act
+		res, err := endpoints.UpdateUser(ctx, tc.data)
+
+		// assert
+		assert.Equal(tc.res, res)
+		assert.Equal(tc.err, err)
+	}
+}
+
+func TestGetUser(t *testing.T) {
+	http_srv_mock := new(transport.ServiceMock)
+
+	endpoints := transport.MakeHttpEndpoints(http_srv_mock)
+
+	test_cases := []struct {
+		test_name string
+		data      transport.GetUserRequest
+		res       transport.GetUserResponse
+		user_res  entities.User
+		err       error
+	}{
+		{
+			test_name: "user found success",
+			data: transport.GetUserRequest{
+				UserId: 1,
+			},
+			user_res: entities.User{
+				Email:     "email@email.com",
+				Password:  "password",
+				Age:       23,
+				ExtraInfo: "extra_info",
+			},
+			res: transport.GetUserResponse{
+				Id:        1,
+				Email:     "email@email.com",
+				Password:  "password",
+				Age:       23,
+				ExtraInfo: "extra_info",
+			},
+		},
+	}
+
+	for _, tc := range test_cases {
+		// prepare
+		ctx := context.Background()
+		assert := assert.New(t)
+
+		http_srv_mock.On("GetUser", ctx, tc.data.UserId).Return(tc.user_res, tc.err)
+
+		// act
+		res, err := endpoints.GetUser(ctx, tc.data)
+
+		// assert
+		assert.Equal(tc.res, res)
+		assert.Equal(tc.err, err)
 	}
 }

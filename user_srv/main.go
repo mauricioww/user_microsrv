@@ -30,7 +30,7 @@ func main() {
 		logger = log.With(
 			logger,
 			"service",
-			"HTTP_SRV",
+			"GRPC_SRV",
 			"time",
 			log.DefaultTimestampUTC,
 			"caller",
