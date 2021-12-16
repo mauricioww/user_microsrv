@@ -19,7 +19,7 @@ func NewHTTPServer(ctx context.Context, http_endpoints HttpEndpoints) http.Handl
 	r.Use(middleware)
 
 	user_router := r.PathPrefix("/user").Subrouter()
-	// user_router.Use(authMiddleware)
+	user_router.Use(authMiddleware)
 
 	user_router.Methods("GET").Path("/{id}").Handler(http_gokit.NewServer(
 		http_endpoints.GetUser,

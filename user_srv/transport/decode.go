@@ -24,4 +24,8 @@ type (
 	GetUserRequest struct {
 		UserId int
 	}
+
+	DeleteUserRequest struct {
+		UserId int
+	}
 )

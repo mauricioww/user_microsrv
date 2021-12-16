@@ -34,3 +34,9 @@ func (r *UserRepositoryMock) GetUser(ctx context.Context, id int) (entities.User
 
 	return args.Get(0).(entities.User), args.Error(1)
 }
+
+func (r *UserRepositoryMock) DeleteUser(ctx context.Context, id int) (bool, error) {
+	args := r.Called(ctx, id)
+
+	return args.Bool(0), args.Error(1)
+}

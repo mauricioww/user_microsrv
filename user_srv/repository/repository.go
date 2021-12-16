@@ -40,6 +40,7 @@ type UserSrvRepository interface {
 	Authenticate(ctx context.Context, session *entities.Session) (string, error)
 	UpdateUser(ctx context.Context, information entities.Update) (entities.User, error)
 	GetUser(ctx context.Context, id int) (entities.User, error)
+	DeleteUser(ctx context.Context, id int) (bool, error)
 }
 
 type userSrvRepository struct {
@@ -105,4 +106,14 @@ func (r userSrvRepository) GetUser(ctx context.Context, id int) (entities.User, 
 	}
 
 	return u, nil
+}
+
+func (r userSrvRepository) DeleteUser(ctx context.Context, id int) (bool, error) {
+	_, err := r.db.ExecContext(ctx, delete_user_sql, id)
+
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }

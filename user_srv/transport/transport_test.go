@@ -18,7 +18,8 @@ func TestCreateUser(t *testing.T) {
 	test_cases := []struct {
 		test_name string
 		data      transport.CreateUserRequest
-		res       string
+		res       transport.CreateUserResponse
+		srv_res   string
 		err       error
 	}{
 		{
@@ -29,8 +30,9 @@ func TestCreateUser(t *testing.T) {
 				Age:       23,
 				ExtraInfo: "fav movie: fight club",
 			},
-			res: "1",
-			err: nil,
+			res:     transport.CreateUserResponse{Id: "1"},
+			srv_res: "1",
+			err:     nil,
 		},
 	}
 	for _, tc := range test_cases {
@@ -39,7 +41,7 @@ func TestCreateUser(t *testing.T) {
 			assert := assert.New(t)
 			ctx := context.Background()
 
-			grpc_user_srv_mock.On("CreateUser", ctx, tc.data.Email, tc.data.Password, tc.data.ExtraInfo, tc.data.Age).Return(tc.res, tc.err)
+			grpc_user_srv_mock.On("CreateUser", ctx, tc.data.Email, tc.data.Password, tc.data.ExtraInfo, tc.data.Age).Return(tc.srv_res, tc.err)
 
 			// act
 			res, err := endpoints.CreateUser(ctx, tc.data)
@@ -59,7 +61,8 @@ func TestAuthenticate(t *testing.T) {
 	test_cases := []struct {
 		test_name string
 		data      transport.AuthenticateRequest
-		res       int
+		res       transport.AuthenticateResponse
+		srv_res   int
 		err       error
 	}{
 		{
@@ -68,8 +71,9 @@ func TestAuthenticate(t *testing.T) {
 				Email:    "user@email.com",
 				Password: "qwerty",
 			},
-			res: 0,
-			err: nil,
+			res:     transport.AuthenticateResponse{Id: 0},
+			srv_res: 0,
+			err:     nil,
 		},
 		{
 			test_name: "invalid password error",
@@ -77,8 +81,9 @@ func TestAuthenticate(t *testing.T) {
 				Email:    "user@email.com",
 				Password: "invalid_password",
 			},
-			res: -1,
-			err: errors.New("Invalid Password"),
+			res:     transport.AuthenticateResponse{Id: -1},
+			srv_res: -1,
+			err:     errors.New("Invalid Password"),
 		},
 	}
 
@@ -88,7 +93,7 @@ func TestAuthenticate(t *testing.T) {
 			assert := assert.New(t)
 			ctx := context.Background()
 
-			grpc_user_srv_mock.On("Authenticate", ctx, tc.data.Email, tc.data.Password).Return(tc.res, tc.err)
+			grpc_user_srv_mock.On("Authenticate", ctx, tc.data.Email, tc.data.Password).Return(tc.srv_res, tc.err)
 
 			// act
 			res, err := endpoints.Authenticate(ctx, tc.data)
@@ -108,7 +113,8 @@ func TestUpdateUser(t *testing.T) {
 	test_cases := []struct {
 		test_name string
 		data      transport.UpdateUserRequest
-		res       entities.User
+		res       transport.UpdateUserResponse
+		srv_res   entities.User
 		err       error
 	}{
 		{
@@ -119,11 +125,15 @@ func TestUpdateUser(t *testing.T) {
 				Password: "new_password",
 				Age:      25,
 			},
-			res: entities.User{
-				Email:     "new_email@domain.com",
-				Password:  "new_password",
-				Age:       25,
-				ExtraInfo: "",
+			srv_res: entities.User{
+				Email:    "new_email@domain.com",
+				Password: "new_password",
+				Age:      25,
+			},
+			res: transport.UpdateUserResponse{
+				Email:    "new_email@domain.com",
+				Password: "new_password",
+				Age:      25,
 			},
 			err: nil,
 		},
@@ -135,7 +145,7 @@ func TestUpdateUser(t *testing.T) {
 			assert := assert.New(t)
 			ctx := context.Background()
 
-			grpc_user_srv_mock.On("UpdateUser", ctx, tc.data.Id, tc.data.Email, tc.data.Password, tc.data.ExtraInfo, tc.data.Age).Return(tc.res, tc.err)
+			grpc_user_srv_mock.On("UpdateUser", ctx, tc.data.Id, tc.data.Email, tc.data.Password, tc.data.ExtraInfo, tc.data.Age).Return(tc.srv_res, tc.err)
 
 			// act
 			res, err := endpoints.UpdateUser(ctx, tc.data)
@@ -155,7 +165,8 @@ func TestGetUser(t *testing.T) {
 	test_cases := []struct {
 		test_name string
 		data      transport.GetUserRequest
-		res       entities.User
+		res       transport.GetUserResponse
+		srv_res   entities.User
 		err       error
 	}{
 		{
@@ -163,7 +174,13 @@ func TestGetUser(t *testing.T) {
 			data: transport.GetUserRequest{
 				UserId: 1,
 			},
-			res: entities.User{
+			srv_res: entities.User{
+				Email:     "user@email.com",
+				Password:  "password",
+				Age:       20,
+				ExtraInfo: "fav color blue",
+			},
+			res: transport.GetUserResponse{
 				Email:     "user@email.com",
 				Password:  "password",
 				Age:       20,
@@ -176,7 +193,6 @@ func TestGetUser(t *testing.T) {
 			data: transport.GetUserRequest{
 				UserId: -1,
 			},
-			res: entities.User{},
 			err: errors.New("User not found"),
 		},
 	}
@@ -187,10 +203,51 @@ func TestGetUser(t *testing.T) {
 			assert := assert.New(t)
 			ctx := context.Background()
 
-			grpc_user_srv_mock.On("GetUser", ctx, tc.data.UserId).Return(tc.res, tc.err)
+			grpc_user_srv_mock.On("GetUser", ctx, tc.data.UserId).Return(tc.srv_res, tc.err)
 
 			// act
 			res, err := endpoints.GetUser(ctx, tc.data)
+
+			// assert
+			assert.Equal(tc.res, res)
+			assert.Equal(tc.err, err)
+		})
+	}
+}
+
+func TestDeleteUser(t *testing.T) {
+	grpc_user_srv_mock := new(transport.GrpcUserSrvMock)
+
+	endpoints := transport.MakeGrpcUserServiceEndpoints(grpc_user_srv_mock)
+
+	test_cases := []struct {
+		test_name string
+		data      transport.DeleteUserRequest
+		res       transport.DeleteUserResponse
+		srv_res   bool
+		err       error
+	}{
+		{
+			test_name: "delete user success",
+			data: transport.DeleteUserRequest{
+				UserId: 1,
+			},
+			srv_res: true,
+			res:     transport.DeleteUserResponse{Success: true},
+			err:     nil,
+		},
+	}
+
+	for _, tc := range test_cases {
+		t.Run(tc.test_name, func(t *testing.T) {
+			// prepare
+			assert := assert.New(t)
+			ctx := context.Background()
+
+			grpc_user_srv_mock.On("DeleteUser", ctx, tc.data.UserId).Return(tc.srv_res, tc.err)
+
+			// act
+			res, err := endpoints.DeleteUser(ctx, tc.data)
 
 			// assert
 			assert.Equal(tc.res, res)

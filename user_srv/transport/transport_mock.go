@@ -34,3 +34,9 @@ func (s *GrpcUserSrvMock) GetUser(ctx context.Context, id int) (entities.User, e
 
 	return args.Get(0).(entities.User), args.Error(1)
 }
+
+func (s *GrpcUserSrvMock) DeleteUser(ctx context.Context, id int) (bool, error) {
+	args := s.Called(ctx, id)
+
+	return args.Bool(0), args.Error(1)
+}
