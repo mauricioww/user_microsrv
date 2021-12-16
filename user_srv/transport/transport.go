@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	grpc_gokit "github.com/go-kit/kit/transport/grpc"
-	"github.com/mauricioww/user_microsrv/user_srv/entities"
 	"github.com/mauricioww/user_microsrv/user_srv/userpb"
 )
 
@@ -14,6 +13,7 @@ type gRPCServer struct {
 	authenticate grpc_gokit.Handler
 	updateUser   grpc_gokit.Handler
 	getUser      grpc_gokit.Handler
+	deleteUser   grpc_gokit.Handler
 
 	userpb.UnimplementedUserServiceServer
 }
@@ -35,7 +35,7 @@ func NewGrpcUserServer(grpc_endpoints GrpcUserServiceEndpoints) userpb.UserServi
 		updateUser: grpc_gokit.NewServer(
 			grpc_endpoints.UpdateUser,
 			decodeUpdateUserRequest,
-			encondeUpdatUserResponse,
+			encondeUpdateUserResponse,
 		),
 
 		getUser: grpc_gokit.NewServer(
@@ -43,29 +43,35 @@ func NewGrpcUserServer(grpc_endpoints GrpcUserServiceEndpoints) userpb.UserServi
 			decodeGetUserRequest,
 			encodeGetUserResponse,
 		),
+
+		deleteUser: grpc_gokit.NewServer(
+			grpc_endpoints.DeleteUser,
+			decodeDeleteUserRequest,
+			encondeDeleteUserResponse,
+		),
 	}
 }
 
 func decodeCreateUserRequest(_ context.Context, request interface{}) (interface{}, error) {
-	user_pb, ok := request.(*userpb.CreateUserRequest)
+	create_pb, ok := request.(*userpb.CreateUserRequest)
 
 	if !ok {
 		return nil, errors.New("No proto message 'CreateUserRequest' request")
 	}
 
 	req := CreateUserRequest{
-		Email:     user_pb.GetEmail(),
-		Password:  user_pb.GetPassword(),
-		Age:       int(user_pb.GetAge()),
-		ExtraInfo: user_pb.GetAdditionalInformation(),
+		Email:     create_pb.GetEmail(),
+		Password:  create_pb.GetPassword(),
+		Age:       int(create_pb.GetAge()),
+		ExtraInfo: create_pb.GetAdditionalInformation(),
 	}
 
 	return req, nil
 }
 
 func encodeCreateUserResponse(_ context.Context, response interface{}) (interface{}, error) {
-	res := response.(string)
-	return &userpb.CreateUserResponse{Id: res}, nil
+	res := response.(CreateUserResponse)
+	return &userpb.CreateUserResponse{Id: res.Id}, nil
 }
 
 func decodeAuthenticateRequest(_ context.Context, request interface{}) (interface{}, error) {
@@ -84,9 +90,9 @@ func decodeAuthenticateRequest(_ context.Context, request interface{}) (interfac
 }
 
 func encodeAuthenticateResponse(_ context.Context, response interface{}) (interface{}, error) {
-	res := response.(int)
+	res := response.(AuthenticateResponse)
 
-	return &userpb.AuthenticateResponse{UserId: int32(res)}, nil
+	return &userpb.AuthenticateResponse{UserId: int32(res.Id)}, nil
 }
 
 func decodeUpdateUserRequest(_ context.Context, request interface{}) (interface{}, error) {
@@ -107,8 +113,8 @@ func decodeUpdateUserRequest(_ context.Context, request interface{}) (interface{
 	return req, nil
 }
 
-func encondeUpdatUserResponse(_ context.Context, response interface{}) (interface{}, error) {
-	res := response.(entities.User)
+func encondeUpdateUserResponse(_ context.Context, response interface{}) (interface{}, error) {
+	res := response.(UpdateUserResponse)
 
 	return &userpb.UpdateUserResponse{
 		Email:                 res.Email,
@@ -119,21 +125,21 @@ func encondeUpdatUserResponse(_ context.Context, response interface{}) (interfac
 }
 
 func decodeGetUserRequest(_ context.Context, request interface{}) (interface{}, error) {
-	res, ok := request.(*userpb.GetUserRequest)
+	get_pb, ok := request.(*userpb.GetUserRequest)
 
 	if !ok {
 		return nil, errors.New("No 'GetUserRequest' type")
 	}
 
 	req := GetUserRequest{
-		UserId: int(res.GetId()),
+		UserId: int(get_pb.GetId()),
 	}
 
 	return req, nil
 }
 
 func encodeGetUserResponse(_ context.Context, response interface{}) (interface{}, error) {
-	res := response.(entities.User)
+	res := response.(GetUserResponse)
 
 	return &userpb.GetUserResponse{
 		Email:                 res.Email,
@@ -141,6 +147,26 @@ func encodeGetUserResponse(_ context.Context, response interface{}) (interface{}
 		Age:                   uint32(res.Age),
 		AdditionalInformation: res.ExtraInfo,
 	}, nil
+}
+
+func decodeDeleteUserRequest(_ context.Context, request interface{}) (interface{}, error) {
+	delete_pb, ok := request.(*userpb.DeleteUserRequest)
+
+	if !ok {
+		return nil, errors.New("No 'DeleteUserRequest' type")
+	}
+
+	req := DeleteUserRequest{
+		UserId: int(delete_pb.GetId()),
+	}
+
+	return req, nil
+}
+
+func encondeDeleteUserResponse(_ context.Context, response interface{}) (interface{}, error) {
+	res := response.(DeleteUserResponse)
+
+	return &userpb.DeleteUserResponse{Success: res.Success}, nil
 }
 
 func (g *gRPCServer) CreateUser(ctx context.Context, req *userpb.CreateUserRequest) (*userpb.CreateUserResponse, error) {

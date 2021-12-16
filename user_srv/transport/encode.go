@@ -6,7 +6,7 @@ type (
 	}
 
 	AuthenticateResponse struct {
-		Id string
+		Id int
 	}
 
 	UpdateUserResponse struct {
@@ -21,5 +21,9 @@ type (
 		Password  string
 		Age       int
 		ExtraInfo string
+	}
+
+	DeleteUserResponse struct {
+		Success bool
 	}
 )

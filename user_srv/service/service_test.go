@@ -273,3 +273,53 @@ func TestGetUser(t *testing.T) {
 		})
 	}
 }
+
+func TestDeleteUser(t *testing.T) {
+	var logger log.Logger
+	{
+		logger = log.NewLogfmtLogger(os.Stderr)
+		logger = log.NewSyncLogger(logger)
+		logger = log.With(
+			logger,
+			"service",
+			"account",
+			"time",
+			log.DefaultTimestampUTC,
+			"caller",
+			log.DefaultCaller,
+		)
+	}
+
+	var grpc_user_srv service.GrpcUserService
+
+	user_repo_mock := new(service.UserRepositoryMock)
+	grpc_user_srv = service.NewGrpcUserService(user_repo_mock, logger)
+
+	test_cases := []struct {
+		test_name string
+		data      int
+		res       bool
+		err       error
+	}{
+		{
+			test_name: "delete user success",
+			data:      1,
+			res:       true,
+			err:       nil,
+		},
+	}
+
+	for _, tc := range test_cases {
+		// prepare
+		ctx := context.Background()
+		assert := assert.New(t)
+
+		// act
+		user_repo_mock.On("DeleteUser", ctx, tc.data).Return(tc.res, tc.err)
+		res, err := grpc_user_srv.DeleteUser(ctx, tc.data)
+
+		// assert
+		assert.Equal(tc.res, res)
+		assert.Equal(tc.err, err)
+	}
+}

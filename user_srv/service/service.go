@@ -17,6 +17,7 @@ type GrpcUserService interface {
 	Authenticate(ctx context.Context, email string, pwd string) (int, error)
 	UpdateUser(ctx context.Context, id int, email string, pwd string, extra_info string, age int) (entities.User, error)
 	GetUser(ctx context.Context, id int) (entities.User, error)
+	DeleteUser(ctx context.Context, id int) (bool, error)
 }
 
 type grpcUserService struct {
@@ -119,4 +120,17 @@ func (g *grpcUserService) GetUser(ctx context.Context, id int) (entities.User, e
 
 	logger.Log("action", "success")
 	return user, nil
+}
+
+func (g *grpcUserService) DeleteUser(ctx context.Context, id int) (bool, error) {
+	logger := log.With(g.logger, "method", "delete_user")
+
+	success, err := g.repository.DeleteUser(ctx, id)
+
+	if err != nil {
+		level.Error(logger).Log("ERROR", err)
+	}
+
+	logger.Log("action", "success")
+	return success, err
 }
