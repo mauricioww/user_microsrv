@@ -210,3 +210,66 @@ func TestUpdateUser(t *testing.T) {
 		})
 	}
 }
+
+func TestGetUser(t *testing.T) {
+	var logger log.Logger
+	{
+		logger = log.NewLogfmtLogger(os.Stderr)
+		logger = log.NewSyncLogger(logger)
+		logger = log.With(
+			logger,
+			"service",
+			"account",
+			"time",
+			log.DefaultTimestampUTC,
+			"caller",
+			log.DefaultCaller,
+		)
+	}
+
+	var grpc_user_srv service.GrpcUserService
+
+	user_repo_mock := new(service.UserRepositoryMock)
+	grpc_user_srv = service.NewGrpcUserService(user_repo_mock, logger)
+
+	test_cases := []struct {
+		test_name string
+		data      int
+		res       entities.User
+		err       error
+	}{
+		{
+			test_name: "user found",
+			data:      0,
+			res: entities.User{
+				Email:     "user@email.com",
+				Password:  "password",
+				Age:       20,
+				ExtraInfo: "fav color blue",
+			},
+			err: nil,
+		},
+		{
+			test_name: "user not found error",
+			data:      -1,
+			res:       entities.User{},
+			err:       errors.New("User not found"),
+		},
+	}
+
+	for _, tc := range test_cases {
+		t.Run(tc.test_name, func(t *testing.T) {
+			// prepare
+			ctx := context.Background()
+			assert := assert.New(t)
+
+			// act
+			user_repo_mock.On("GetUser", ctx, tc.data).Return(tc.res, tc.err)
+			res, err := grpc_user_srv.GetUser(ctx, tc.data)
+
+			// assert
+			assert.Equal(tc.res, res)
+			assert.Equal(tc.err, err)
+		})
+	}
+}

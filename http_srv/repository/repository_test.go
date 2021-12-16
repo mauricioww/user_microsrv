@@ -231,7 +231,6 @@ func UpdateUser(t *testing.T) {
 			prev_user: entities.User{
 				Email: "user@email.com",
 			},
-			fields: []string{"email"},
 			aft_user: entities.User{
 				Email: "new_email@domain.com",
 			},
@@ -243,7 +242,6 @@ func UpdateUser(t *testing.T) {
 				Email:    "user@email.com",
 				Password: "password",
 			},
-			fields: []string{"email", "password"},
 			aft_user: entities.User{
 				Email:    "new_email@domain.com",
 				Password: "new_password",
@@ -263,7 +261,6 @@ func UpdateUser(t *testing.T) {
 				Password:              tc.prev_user.Password,
 				Age:                   uint32(tc.prev_user.Age),
 				AdditionalInformation: tc.prev_user.ExtraInfo,
-				Fields:                tc.fields,
 			}
 
 			grpc_res := &userpb.UpdateUserResponse{

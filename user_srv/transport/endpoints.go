@@ -11,6 +11,7 @@ type GrpcUserServiceEndpoints struct {
 	CreateUser   endpoint.Endpoint
 	Authenticate endpoint.Endpoint
 	UpdateUser   endpoint.Endpoint
+	GetUser      endpoint.Endpoint
 }
 
 func MakeGrpcUserServiceEndpoints(grpc_user_srv service.GrpcUserService) GrpcUserServiceEndpoints {
@@ -18,6 +19,7 @@ func MakeGrpcUserServiceEndpoints(grpc_user_srv service.GrpcUserService) GrpcUse
 		CreateUser:   makeCreateUserEndpoint(grpc_user_srv),
 		Authenticate: makeAuthenticateEndpoint(grpc_user_srv),
 		UpdateUser:   makeUpdateUserEndpoint(grpc_user_srv),
+		GetUser:      makeGetUserEndpoint(grpc_user_srv),
 	}
 }
 
@@ -41,6 +43,14 @@ func makeUpdateUserEndpoint(srv service.GrpcUserService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req, _ := request.(UpdateUserRequest)
 		res, err := srv.UpdateUser(ctx, req.Id, req.Email, req.Password, req.ExtraInfo, req.Age)
+		return res, err
+	}
+}
+
+func makeGetUserEndpoint(srv service.GrpcUserService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req, _ := request.(GetUserRequest)
+		res, err := srv.GetUser(ctx, req.UserId)
 		return res, err
 	}
 }

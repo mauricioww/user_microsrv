@@ -28,3 +28,9 @@ func (r *UserRepositoryMock) UpdateUser(ctx context.Context, update entities.Upd
 
 	return args.Get(0).(entities.User), args.Error(1)
 }
+
+func (r *UserRepositoryMock) GetUser(ctx context.Context, id int) (entities.User, error) {
+	args := r.Called(ctx, id)
+
+	return args.Get(0).(entities.User), args.Error(1)
+}

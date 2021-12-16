@@ -146,3 +146,55 @@ func TestUpdateUser(t *testing.T) {
 		})
 	}
 }
+
+func TestGetUser(t *testing.T) {
+	grpc_user_srv_mock := new(transport.GrpcUserSrvMock)
+
+	endpoints := transport.MakeGrpcUserServiceEndpoints(grpc_user_srv_mock)
+
+	test_cases := []struct {
+		test_name string
+		data      transport.GetUserRequest
+		res       entities.User
+		err       error
+	}{
+		{
+			test_name: "user found",
+			data: transport.GetUserRequest{
+				UserId: 1,
+			},
+			res: entities.User{
+				Email:     "user@email.com",
+				Password:  "password",
+				Age:       20,
+				ExtraInfo: "fav color blue",
+			},
+			err: nil,
+		},
+		{
+			test_name: "user not found error",
+			data: transport.GetUserRequest{
+				UserId: -1,
+			},
+			res: entities.User{},
+			err: errors.New("User not found"),
+		},
+	}
+
+	for _, tc := range test_cases {
+		t.Run(tc.test_name, func(t *testing.T) {
+			// prepare
+			assert := assert.New(t)
+			ctx := context.Background()
+
+			grpc_user_srv_mock.On("GetUser", ctx, tc.data.UserId).Return(tc.res, tc.err)
+
+			// act
+			res, err := endpoints.GetUser(ctx, tc.data)
+
+			// assert
+			assert.Equal(tc.res, res)
+			assert.Equal(tc.err, err)
+		})
+	}
+}

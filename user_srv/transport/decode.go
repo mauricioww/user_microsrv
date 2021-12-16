@@ -20,4 +20,8 @@ type (
 		Age       int
 		ExtraInfo string
 	}
+
+	GetUserRequest struct {
+		UserId int
+	}
 )

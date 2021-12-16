@@ -26,8 +26,12 @@ const (
 	`
 
 	get_user_by_id = `
-		SELECT u.email, u.age, u.extra_info 
+		SELECT u.email, u.password, u.age, u.extra_info
 			FROM usr_service u WHERE u.id = ?
+	`
+
+	delete_user_sql = `
+		DELETE FROM usr_service WHERE id = ?
 	`
 )
 
@@ -35,6 +39,7 @@ type UserSrvRepository interface {
 	CreateUser(ctx context.Context, user entities.User) (string, error)
 	Authenticate(ctx context.Context, session *entities.Session) (string, error)
 	UpdateUser(ctx context.Context, information entities.Update) (entities.User, error)
+	GetUser(ctx context.Context, id int) (entities.User, error)
 }
 
 type userSrvRepository struct {
@@ -68,7 +73,6 @@ func (r userSrvRepository) Authenticate(ctx context.Context, session *entities.S
 	if err == sql.ErrNoRows {
 		return "", errors.New("User not found")
 	}
-
 	if err != nil {
 		return "", errors.New("Internal Error")
 	}
@@ -84,7 +88,21 @@ func (r userSrvRepository) UpdateUser(ctx context.Context, update entities.Updat
 	}
 
 	u := entities.User{}
-	_ = r.db.QueryRow(get_user_by_id, update.UserId).Scan(&u.Email, &u.Age, &u.ExtraInfo)
+	_ = r.db.QueryRow(get_user_by_id, update.UserId).Scan(&u.Email, &u.Password, &u.Age, &u.ExtraInfo)
+
+	return u, nil
+}
+
+func (r userSrvRepository) GetUser(ctx context.Context, id int) (entities.User, error) {
+	u := entities.User{}
+	err := r.db.QueryRow(get_user_by_id, id).Scan(&u.Email, &u.Password, &u.Age, &u.ExtraInfo)
+
+	if err == sql.ErrNoRows {
+		return entities.User{}, errors.New("User not found")
+	}
+	if err != nil {
+		return entities.User{}, errors.New("Internal Error")
+	}
 
 	return u, nil
 }
