@@ -16,6 +16,7 @@ type HttpService interface {
 	CreateUser(ctx context.Context, email string, pwd string, extra_info string, age int) (string, error)
 	Authenticate(ctx context.Context, email string, pwd string) (string, error)
 	UpdateUser(ctx context.Context, user_id int, email string, pwd string, extra_info string, age int) (entities.User, error)
+	GetUser(ctx context.Context, user_id int) (entities.User, error)
 }
 
 type httpService struct {
@@ -31,7 +32,7 @@ func NewHttpService(r repository.HttpRepository, l log.Logger) HttpService {
 }
 
 func (hs httpService) CreateUser(ctx context.Context, email string, pwd string, extra_info string, age int) (string, error) {
-	logger := log.With(hs.logger, "HTTP_SRV: method", "create_user")
+	logger := log.With(hs.logger, "method", "create_user")
 
 	user := entities.User{
 		Email:     email,
@@ -47,12 +48,12 @@ func (hs httpService) CreateUser(ctx context.Context, email string, pwd string, 
 		return "", err
 	}
 
-	logger.Log("user_send_successfully", res)
+	logger.Log("action", "success")
 	return res, nil
 }
 
 func (hs httpService) Authenticate(ctx context.Context, email string, pwd string) (string, error) {
-	logger := log.With(hs.logger, "HTTP_SRV: method", "authenticate")
+	logger := log.With(hs.logger, "method", "authenticate")
 
 	var response string
 	session := entities.Session{
@@ -80,15 +81,14 @@ func (hs httpService) Authenticate(ctx context.Context, email string, pwd string
 			level.Error(logger).Log("ERROR: ", err)
 			return "", err
 		}
-
-		logger.Log("user authenticated", res)
 	}
 
+	logger.Log("action", "success")
 	return response, nil
 }
 
 func (hs httpService) UpdateUser(ctx context.Context, user_id int, email string, pwd string, extra_info string, age int) (entities.User, error) {
-	logger := log.With(hs.logger, "HTTP_SRV: method", "authenticate")
+	logger := log.With(hs.logger, "method", "authenticate")
 
 	info_update := entities.UserUpdate{
 		UserId: user_id,
@@ -107,5 +107,20 @@ func (hs httpService) UpdateUser(ctx context.Context, user_id int, email string,
 		return entities.User{}, err
 	}
 
+	logger.Log("action", "success")
 	return res, err
+}
+
+func (hs httpService) GetUser(ctx context.Context, user_id int) (entities.User, error) {
+	logger := log.With(hs.logger, "method", "get_user")
+
+	res, err := hs.repository.GetUser(ctx, user_id)
+
+	if err != nil {
+		level.Error(logger).Log("ERROR: ", err)
+		return entities.User{}, err
+	}
+
+	logger.Log("action", "success")
+	return res, nil
 }

@@ -11,6 +11,7 @@ type HttpEndpoints struct {
 	CreateUser   endpoint.Endpoint
 	Authenticate endpoint.Endpoint
 	UpdateUser   endpoint.Endpoint
+	GetUser      endpoint.Endpoint
 }
 
 func MakeHttpEndpoints(http_srv service.HttpService) HttpEndpoints {
@@ -18,6 +19,7 @@ func MakeHttpEndpoints(http_srv service.HttpService) HttpEndpoints {
 		CreateUser:   makeCreateUserEndpoint(http_srv),
 		Authenticate: makeAuthenticateEndpoint(http_srv),
 		UpdateUser:   makeUpdateUserEndpoint(http_srv),
+		GetUser:      makeGetUserEndpoint(http_srv),
 	}
 }
 
@@ -42,5 +44,13 @@ func makeUpdateUserEndpoint(http_srv service.HttpService) endpoint.Endpoint {
 		req := request.(UpdateUserRequest)
 		res, err := http_srv.UpdateUser(ctx, req.UserId, req.Email, req.Password, req.ExtraInfo, req.Age)
 		return UpdateUserResponse{Id: req.UserId, Email: res.Email, Password: req.Password, Age: res.Age, ExtraInfo: res.ExtraInfo}, err
+	}
+}
+
+func makeGetUserEndpoint(http_srv service.HttpService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(GetUserRequest)
+		res, err := http_srv.GetUser(ctx, req.UserId)
+		return GetUserResponse{Id: req.UserId, Email: res.Email, Password: res.Password, Age: res.Age, ExtraInfo: res.ExtraInfo}, err
 	}
 }

@@ -175,3 +175,112 @@ func TestAuthenticate(t *testing.T) {
 		})
 	}
 }
+
+func TestUpdateUser(t *testing.T) {
+	var logger log.Logger
+	{
+		logger = log.NewLogfmtLogger(os.Stderr)
+		logger = log.NewSyncLogger(logger)
+		logger = log.With(
+			logger,
+			"service",
+			"account",
+			"time",
+			log.DefaultTimestampUTC,
+			"caller",
+			log.DefaultCaller,
+		)
+	}
+
+	repository_mock := new(service.RepoMock)
+	http_service := service.NewHttpService(repository_mock, logger)
+
+	test_cases := []struct {
+		test_name string
+		data      entities.UserUpdate
+		res       entities.User
+		err       error
+	}{
+		{
+			test_name: "update user success",
+			data: entities.UserUpdate{
+				UserId: 1,
+				User: entities.User{
+					Email:     "new_email@domain.com",
+					Password:  "new_password",
+					Age:       23,
+					ExtraInfo: "new_extra_info",
+				},
+			},
+			err: nil,
+		},
+	}
+
+	for _, tc := range test_cases {
+		// prepare
+		ctx := context.Background()
+		assert := assert.New(t)
+		tc.res = tc.data.User
+
+		// act
+		repository_mock.On("UpdateUser", ctx, tc.data).Return(tc.res, tc.err)
+		res, err := http_service.UpdateUser(ctx, tc.data.UserId, tc.data.Email, tc.data.Password, tc.data.ExtraInfo, tc.data.Age)
+
+		// assert
+		assert.Equal(tc.res, res)
+		assert.Equal(tc.err, err)
+	}
+}
+
+func TestGetUser(t *testing.T) {
+	var logger log.Logger
+	{
+		logger = log.NewLogfmtLogger(os.Stderr)
+		logger = log.NewSyncLogger(logger)
+		logger = log.With(
+			logger,
+			"service",
+			"account",
+			"time",
+			log.DefaultTimestampUTC,
+			"caller",
+			log.DefaultCaller,
+		)
+	}
+
+	repository_mock := new(service.RepoMock)
+	http_service := service.NewHttpService(repository_mock, logger)
+
+	test_cases := []struct {
+		test_name string
+		data      int
+		res       entities.User
+		err       error
+	}{
+		{
+			test_name: "user found success",
+			data:      1,
+			res: entities.User{
+				Email:     "email@domain.com",
+				Password:  "password",
+				Age:       23,
+				ExtraInfo: "information",
+			},
+			err: nil,
+		},
+	}
+
+	for _, tc := range test_cases {
+		// prepare
+		ctx := context.Background()
+		assert := assert.New(t)
+
+		// act
+		repository_mock.On("GetUser", ctx, tc.data).Return(tc.res, tc.err)
+		res, err := http_service.GetUser(ctx, tc.data)
+
+		// assert
+		assert.Equal(tc.res, res)
+		assert.Equal(tc.err, err)
+	}
+}

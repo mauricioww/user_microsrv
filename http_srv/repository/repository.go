@@ -15,6 +15,7 @@ type HttpRepository interface {
 	CreateUser(ctx context.Context, user entities.User) (string, error)
 	Authenticate(ctx context.Context, session entities.Session) (int, error)
 	UpdateUser(ctx context.Context, user entities.UserUpdate) (entities.User, error)
+	GetUser(ctx context.Context, id int) (entities.User, error)
 }
 
 type httpRepository struct {
@@ -49,8 +50,7 @@ func (hr httpRepository) CreateUser(ctx context.Context, user entities.User) (st
 		return "", err
 	}
 
-	res := grpc_response.GetId()
-	return res, nil
+	return grpc_response.GetId(), nil
 }
 
 func (hr httpRepository) Authenticate(ctx context.Context, session entities.Session) (int, error) {
@@ -97,6 +97,30 @@ func (hr httpRepository) UpdateUser(ctx context.Context, user entities.UserUpdat
 		Password:  grpc_response.GetPassword(),
 		Age:       int(grpc_response.GetAge()),
 		ExtraInfo: grpc_response.AdditionalInformation,
+	}
+
+	return u, nil
+}
+
+func (hr httpRepository) GetUser(ctx context.Context, id int) (entities.User, error) {
+	logger := log.With(hr.logger, "method", "update_user")
+
+	grpc_request := userpb.GetUserRequest{
+		Id: uint32(id),
+	}
+
+	grpc_response, err := hr.client.GetUser(ctx, &grpc_request)
+
+	if err != nil {
+		level.Error(logger).Log("err", err)
+		return entities.User{}, err
+	}
+
+	u := entities.User{
+		Email:     grpc_response.GetEmail(),
+		Password:  grpc_response.GetPassword(),
+		Age:       int(grpc_response.GetAge()),
+		ExtraInfo: grpc_response.GetAdditionalInformation(),
 	}
 
 	return u, nil

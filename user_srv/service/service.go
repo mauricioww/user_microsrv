@@ -32,7 +32,7 @@ func NewGrpcUserService(r repository.UserSrvRepository, l log.Logger) GrpcUserSe
 }
 
 func (g *grpcUserService) CreateUser(ctx context.Context, email string, pwd string, extra_info string, age int) (string, error) {
-	logger := log.With(g.logger, "GRPC_USER_SERVICE: method", "create_user")
+	logger := log.With(g.logger, "method", "create_user")
 	hashed_pwd, _ := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost)
 
 	user := entities.User{
@@ -49,12 +49,12 @@ func (g *grpcUserService) CreateUser(ctx context.Context, email string, pwd stri
 		return "", err
 	}
 
-	logger.Log("user_saved_successfully", res)
+	logger.Log("action", "success")
 	return res, nil
 }
 
 func (g *grpcUserService) Authenticate(ctx context.Context, email string, pwd string) (int, error) {
-	logger := log.With(g.logger, "GRPC_USER_SERVICE: method", "authenticate")
+	logger := log.With(g.logger, "method", "authenticate")
 
 	fmt.Println("Auth service")
 
@@ -79,11 +79,12 @@ func (g *grpcUserService) Authenticate(ctx context.Context, email string, pwd st
 
 	}
 
+	logger.Log("action", "success")
 	return auth.Id, nil
 }
 
 func (g *grpcUserService) UpdateUser(ctx context.Context, id int, email string, pwd string, extra_info string, age int) (entities.User, error) {
-	logger := log.With(g.logger, "GRPC_USER_SERVICE: method", "update_user")
+	logger := log.With(g.logger, "method", "update_user")
 	hashed_pwd, _ := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost)
 
 	update_info := entities.Update{
@@ -103,11 +104,12 @@ func (g *grpcUserService) UpdateUser(ctx context.Context, id int, email string, 
 		return entities.User{}, err
 	}
 
+	logger.Log("action", "success")
 	return user, nil
 }
 
 func (g *grpcUserService) GetUser(ctx context.Context, id int) (entities.User, error) {
-	logger := log.With(g.logger, "GRPC_USER_SERVICE: method", "get_user")
+	logger := log.With(g.logger, "method", "get_user")
 
 	user, err := g.repository.GetUser(ctx, id)
 	if err != nil {
@@ -115,5 +117,6 @@ func (g *grpcUserService) GetUser(ctx context.Context, id int) (entities.User, e
 		return entities.User{}, err
 	}
 
+	logger.Log("action", "success")
 	return user, nil
 }
