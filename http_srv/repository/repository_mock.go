@@ -55,3 +55,9 @@ func (m *GrpcMock) GetUser(ctx context.Context, req *userpb.GetUserRequest) (*us
 
 	return args.Get(0).(*userpb.GetUserResponse), args.Error(1)
 }
+
+func (m *GrpcMock) DeleteUser(ctx context.Context, req *userpb.DeleteUserRequest) (*userpb.DeleteUserResponse, error) {
+	args := m.Called(ctx, req)
+
+	return args.Get(0).(*userpb.DeleteUserResponse), args.Error(1)
+}

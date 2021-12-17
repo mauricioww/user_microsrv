@@ -16,6 +16,7 @@ type HttpRepository interface {
 	Authenticate(ctx context.Context, session entities.Session) (int, error)
 	UpdateUser(ctx context.Context, user entities.UserUpdate) (entities.User, error)
 	GetUser(ctx context.Context, id int) (entities.User, error)
+	DeleteUser(ctx context.Context, id int) (bool, error)
 }
 
 type httpRepository struct {
@@ -37,20 +38,20 @@ func (hr httpRepository) CreateUser(ctx context.Context, user entities.User) (st
 		return "", errors.New("Email or Password empty!")
 	}
 
-	grpc_request := userpb.CreateUserRequest{
+	grpc_req := userpb.CreateUserRequest{
 		Email:                 user.Email,
 		Password:              user.Password,
 		Age:                   uint32(user.Age),
 		AdditionalInformation: user.ExtraInfo,
 	}
-	grpc_response, err := hr.client.CreateUser(ctx, &grpc_request)
+	grpc_res, err := hr.client.CreateUser(ctx, &grpc_req)
 
 	if err != nil {
 		level.Error(logger).Log("err", err)
 		return "", err
 	}
 
-	return grpc_response.GetId(), nil
+	return grpc_res.GetId(), nil
 }
 
 func (hr httpRepository) Authenticate(ctx context.Context, session entities.Session) (int, error) {
@@ -60,24 +61,24 @@ func (hr httpRepository) Authenticate(ctx context.Context, session entities.Sess
 		return -1, errors.New("Email or Password empty")
 	}
 
-	grpc_request := userpb.AuthenticateRequest{
+	grpc_req := userpb.AuthenticateRequest{
 		Email:    session.Email,
 		Password: session.Password,
 	}
-	grpc_response, err := hr.client.Authenticate(ctx, &grpc_request)
+	grpc_res, err := hr.client.Authenticate(ctx, &grpc_req)
 
 	if err != nil {
 		level.Error(logger).Log("err", err)
 		return -1, err
 	}
 
-	return int(grpc_response.GetUserId()), nil
+	return int(grpc_res.GetUserId()), nil
 }
 
 func (hr httpRepository) UpdateUser(ctx context.Context, user entities.UserUpdate) (entities.User, error) {
 	logger := log.With(hr.logger, "method", "update_user")
 
-	grpc_request := userpb.UpdateUserRequest{
+	grpc_req := userpb.UpdateUserRequest{
 		Id:                    uint32(user.UserId),
 		Email:                 user.Email,
 		Password:              user.Password,
@@ -85,7 +86,7 @@ func (hr httpRepository) UpdateUser(ctx context.Context, user entities.UserUpdat
 		AdditionalInformation: user.ExtraInfo,
 	}
 
-	grpc_response, err := hr.client.UpdateUser(ctx, &grpc_request)
+	grpc_res, err := hr.client.UpdateUser(ctx, &grpc_req)
 
 	if err != nil {
 		level.Error(logger).Log("err", err)
@@ -93,10 +94,10 @@ func (hr httpRepository) UpdateUser(ctx context.Context, user entities.UserUpdat
 	}
 
 	u := entities.User{
-		Email:     grpc_response.GetEmail(),
-		Password:  grpc_response.GetPassword(),
-		Age:       int(grpc_response.GetAge()),
-		ExtraInfo: grpc_response.AdditionalInformation,
+		Email:     grpc_res.GetEmail(),
+		Password:  grpc_res.GetPassword(),
+		Age:       int(grpc_res.GetAge()),
+		ExtraInfo: grpc_res.AdditionalInformation,
 	}
 
 	return u, nil
@@ -105,11 +106,11 @@ func (hr httpRepository) UpdateUser(ctx context.Context, user entities.UserUpdat
 func (hr httpRepository) GetUser(ctx context.Context, id int) (entities.User, error) {
 	logger := log.With(hr.logger, "method", "update_user")
 
-	grpc_request := userpb.GetUserRequest{
+	grpc_req := userpb.GetUserRequest{
 		Id: uint32(id),
 	}
 
-	grpc_response, err := hr.client.GetUser(ctx, &grpc_request)
+	grpc_res, err := hr.client.GetUser(ctx, &grpc_req)
 
 	if err != nil {
 		level.Error(logger).Log("err", err)
@@ -117,11 +118,28 @@ func (hr httpRepository) GetUser(ctx context.Context, id int) (entities.User, er
 	}
 
 	u := entities.User{
-		Email:     grpc_response.GetEmail(),
-		Password:  grpc_response.GetPassword(),
-		Age:       int(grpc_response.GetAge()),
-		ExtraInfo: grpc_response.GetAdditionalInformation(),
+		Email:     grpc_res.GetEmail(),
+		Password:  grpc_res.GetPassword(),
+		Age:       int(grpc_res.GetAge()),
+		ExtraInfo: grpc_res.GetAdditionalInformation(),
 	}
 
 	return u, nil
+}
+
+func (hr httpRepository) DeleteUser(ctx context.Context, id int) (bool, error) {
+	logger := log.With(hr.logger, "method", "delete_user")
+
+	grpc_req := userpb.DeleteUserRequest{
+		Id: uint32(id),
+	}
+
+	grpc_res, err := hr.client.DeleteUser(ctx, &grpc_req)
+
+	if err != nil {
+		level.Error(logger).Log("err", err)
+		return false, err
+	}
+
+	return grpc_res.GetSuccess(), nil
 }

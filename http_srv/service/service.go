@@ -17,6 +17,7 @@ type HttpService interface {
 	Authenticate(ctx context.Context, email string, pwd string) (string, error)
 	UpdateUser(ctx context.Context, user_id int, email string, pwd string, extra_info string, age int) (entities.User, error)
 	GetUser(ctx context.Context, user_id int) (entities.User, error)
+	DeleteUser(ctx context.Context, user_id int) (bool, error)
 }
 
 type httpService struct {
@@ -119,6 +120,20 @@ func (hs httpService) GetUser(ctx context.Context, user_id int) (entities.User, 
 	if err != nil {
 		level.Error(logger).Log("ERROR: ", err)
 		return entities.User{}, err
+	}
+
+	logger.Log("action", "success")
+	return res, nil
+}
+
+func (hs httpService) DeleteUser(ctx context.Context, user_id int) (bool, error) {
+	logger := log.With(hs.logger, "method", "delete_user")
+
+	res, err := hs.repository.DeleteUser(ctx, user_id)
+
+	if err != nil {
+		level.Error(logger).Log("ERROR: ", err)
+		return false, err
 	}
 
 	logger.Log("action", "success")

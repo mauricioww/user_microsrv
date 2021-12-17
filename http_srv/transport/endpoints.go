@@ -12,6 +12,7 @@ type HttpEndpoints struct {
 	Authenticate endpoint.Endpoint
 	UpdateUser   endpoint.Endpoint
 	GetUser      endpoint.Endpoint
+	DeleteUser   endpoint.Endpoint
 }
 
 func MakeHttpEndpoints(http_srv service.HttpService) HttpEndpoints {
@@ -20,6 +21,7 @@ func MakeHttpEndpoints(http_srv service.HttpService) HttpEndpoints {
 		Authenticate: makeAuthenticateEndpoint(http_srv),
 		UpdateUser:   makeUpdateUserEndpoint(http_srv),
 		GetUser:      makeGetUserEndpoint(http_srv),
+		DeleteUser:   makeDeleteUserEndpont(http_srv),
 	}
 }
 
@@ -52,5 +54,13 @@ func makeGetUserEndpoint(http_srv service.HttpService) endpoint.Endpoint {
 		req := request.(GetUserRequest)
 		res, err := http_srv.GetUser(ctx, req.UserId)
 		return GetUserResponse{Id: req.UserId, Email: res.Email, Password: res.Password, Age: res.Age, ExtraInfo: res.ExtraInfo}, err
+	}
+}
+
+func makeDeleteUserEndpont(http_srv service.HttpService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(DeleteUserRequest)
+		res, err := http_srv.DeleteUser(ctx, req.UserId)
+		return DeleteUserResponse{Success: res}, err
 	}
 }
