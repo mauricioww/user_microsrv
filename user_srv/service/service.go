@@ -3,13 +3,12 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/mauricioww/user_microsrv/helpers"
 	"github.com/mauricioww/user_microsrv/user_srv/entities"
 	"github.com/mauricioww/user_microsrv/user_srv/repository"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type GrpcUserService interface {
@@ -34,11 +33,11 @@ func NewGrpcUserService(r repository.UserSrvRepository, l log.Logger) GrpcUserSe
 
 func (g *grpcUserService) CreateUser(ctx context.Context, email string, pwd string, extra_info string, age int) (string, error) {
 	logger := log.With(g.logger, "method", "create_user")
-	hashed_pwd, _ := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost)
+	ciphered_pwd := helpers.Cipher(pwd)
 
 	user := entities.User{
 		Email:     email,
-		Password:  string(hashed_pwd),
+		Password:  ciphered_pwd,
 		Age:       age,
 		ExtraInfo: extra_info,
 	}
@@ -57,8 +56,6 @@ func (g *grpcUserService) CreateUser(ctx context.Context, email string, pwd stri
 func (g *grpcUserService) Authenticate(ctx context.Context, email string, pwd string) (int, error) {
 	logger := log.With(g.logger, "method", "authenticate")
 
-	fmt.Println("Auth service")
-
 	auth := entities.Session{
 		Email:    email,
 		Password: pwd,
@@ -71,13 +68,8 @@ func (g *grpcUserService) Authenticate(ctx context.Context, email string, pwd st
 		return -1, err
 	}
 
-	// if hashed_pwd != auth.Password {
-	// 	return -1, errors.New("Password error")
-	// }
-
-	if err := bcrypt.CompareHashAndPassword([]byte(hashed_pwd), []byte(auth.Password)); err != nil {
+	if cipher := helpers.Cipher(auth.Password); cipher != hashed_pwd {
 		return -1, errors.New("Password error")
-
 	}
 
 	logger.Log("action", "success")
@@ -86,13 +78,13 @@ func (g *grpcUserService) Authenticate(ctx context.Context, email string, pwd st
 
 func (g *grpcUserService) UpdateUser(ctx context.Context, id int, email string, pwd string, extra_info string, age int) (entities.User, error) {
 	logger := log.With(g.logger, "method", "update_user")
-	hashed_pwd, _ := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost)
+	ciphered_pwd := helpers.Cipher(pwd)
 
 	update_info := entities.Update{
 		UserId: id,
 		User: entities.User{
 			Email:     email,
-			Password:  string(hashed_pwd),
+			Password:  ciphered_pwd,
 			ExtraInfo: extra_info,
 			Age:       age,
 		},
@@ -117,6 +109,9 @@ func (g *grpcUserService) GetUser(ctx context.Context, id int) (entities.User, e
 		level.Error(logger).Log("ERROR", err)
 		return entities.User{}, err
 	}
+
+	original_pwd := helpers.Decipher(user.Password)
+	user.Password = original_pwd
 
 	logger.Log("action", "success")
 	return user, nil
