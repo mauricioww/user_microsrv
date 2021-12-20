@@ -284,3 +284,51 @@ func TestGetUser(t *testing.T) {
 		assert.Equal(tc.err, err)
 	}
 }
+
+func TestDeleteUser(t *testing.T) {
+	var logger log.Logger
+	{
+		logger = log.NewLogfmtLogger(os.Stderr)
+		logger = log.NewSyncLogger(logger)
+		logger = log.With(
+			logger,
+			"service",
+			"account",
+			"time",
+			log.DefaultTimestampUTC,
+			"caller",
+			log.DefaultCaller,
+		)
+	}
+
+	repository_mock := new(service.RepoMock)
+	http_service := service.NewHttpService(repository_mock, logger)
+
+	test_cases := []struct {
+		test_name string
+		data      int
+		res       bool
+		err       error
+	}{
+		{
+			test_name: "user deleted success",
+			data:      1,
+			res:       true,
+			err:       nil,
+		},
+	}
+
+	for _, tc := range test_cases {
+		// prepare
+		ctx := context.Background()
+		assert := assert.New(t)
+
+		// act
+		repository_mock.On("DeleteUser", ctx, tc.data).Return(tc.res, tc.err)
+		res, err := http_service.DeleteUser(ctx, tc.data)
+
+		// assert
+		assert.Equal(tc.res, res)
+		assert.Equal(tc.err, err)
+	}
+}

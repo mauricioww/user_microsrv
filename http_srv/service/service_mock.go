@@ -34,3 +34,9 @@ func (r *RepoMock) GetUser(ctx context.Context, id int) (entities.User, error) {
 
 	return args.Get(0).(entities.User), args.Error(1)
 }
+
+func (r *RepoMock) DeleteUser(ctx context.Context, id int) (bool, error) {
+	args := r.Called(ctx, id)
+
+	return args.Bool(0), args.Error(1)
+}

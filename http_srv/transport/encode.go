@@ -28,4 +28,8 @@ type (
 		Age       int    `json:"age"`
 		ExtraInfo string `json:"extra_information"`
 	}
+
+	DeleteUserResponse struct {
+		Success bool `json:"success"`
+	}
 )

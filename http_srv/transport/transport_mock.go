@@ -34,3 +34,9 @@ func (s *ServiceMock) GetUser(ctx context.Context, user_id int) (entities.User, 
 
 	return args.Get(0).(entities.User), args.Error(1)
 }
+
+func (s *ServiceMock) DeleteUser(ctx context.Context, user_id int) (bool, error) {
+	args := s.Called(ctx, user_id)
+
+	return args.Bool(0), args.Error(1)
+}

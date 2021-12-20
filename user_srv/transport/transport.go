@@ -208,3 +208,13 @@ func (g *gRPCServer) GetUser(ctx context.Context, req *userpb.GetUserRequest) (*
 
 	return res.(*userpb.GetUserResponse), nil
 }
+
+func (g *gRPCServer) DeleteUser(ctx context.Context, req *userpb.DeleteUserRequest) (*userpb.DeleteUserResponse, error) {
+	_, res, err := g.deleteUser.ServeGRPC(ctx, req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return res.(*userpb.DeleteUserResponse), nil
+}

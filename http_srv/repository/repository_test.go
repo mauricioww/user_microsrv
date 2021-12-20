@@ -354,3 +354,68 @@ func TestGetUser(t *testing.T) {
 		})
 	}
 }
+
+func TestDeleteUser(t *testing.T) {
+	var logger log.Logger
+	{
+		logger = log.NewLogfmtLogger(os.Stderr)
+		logger = log.NewSyncLogger(logger)
+		logger = log.With(
+			logger,
+			"service",
+			"account",
+			"time",
+			log.DefaultTimestampUTC,
+			"caller",
+			log.DefaultCaller,
+		)
+	}
+
+	grpc_mock := new(repository.GrpcMock)
+	conn, _ := grpc.DialContext(context.Background(), "", grpc.WithInsecure(), grpc.WithContextDialer(repository.Dialer(grpc_mock)))
+	defer conn.Close()
+
+	// http_repository := repository.NewHttpRepository(conn, logger)
+
+	test_cases := []struct {
+		test_name string
+		data      int
+		res       bool
+		err       error
+	}{
+		{
+			test_name: "user deleted success",
+			data:      1,
+			res:       true,
+			err:       nil,
+		},
+		{
+			test_name: "user delete error",
+			data:      -1,
+			res:       false,
+			err:       errors.New("User not found"),
+		},
+	}
+
+	for _, tc := range test_cases {
+		t.Run(tc.test_name, func(t *testing.T) {
+			//  prepare
+			assert := assert.New(t)
+
+			ctx := context.Background()
+
+			grpc_req := &userpb.DeleteUserRequest{Id: uint32(tc.data)}
+
+			grpc_res := &userpb.DeleteUserResponse{Success: tc.res}
+
+			grpc_mock.On("DeleteUser", ctx, grpc_req).Return(grpc_res, tc.err)
+
+			// act
+			res, err := grpc_mock.DeleteUser(ctx, grpc_req)
+
+			// assert
+			assert.Equal(res, grpc_res)
+			assert.Equal(err, tc.err)
+		})
+	}
+}
