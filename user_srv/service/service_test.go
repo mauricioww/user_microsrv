@@ -7,11 +7,11 @@ import (
 	"testing"
 
 	"github.com/go-kit/log"
+	"github.com/mauricioww/user_microsrv/helpers"
 	"github.com/mauricioww/user_microsrv/user_srv/entities"
 	"github.com/mauricioww/user_microsrv/user_srv/service"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func TestCreateUser(t *testing.T) {
@@ -136,7 +136,7 @@ func TestAuthenticate(t *testing.T) {
 			// prepare
 			ctx := context.Background()
 			assert := assert.New(t)
-			hash, _ := bcrypt.GenerateFromPassword([]byte(tc.repo_pwd), bcrypt.DefaultCost)
+			hash := helpers.Cipher(tc.repo_pwd)
 			tc.repo_pwd = string(hash)
 
 			// act
@@ -266,6 +266,8 @@ func TestGetUser(t *testing.T) {
 			// act
 			user_repo_mock.On("GetUser", ctx, tc.data).Return(tc.res, tc.err)
 			res, err := grpc_user_srv.GetUser(ctx, tc.data)
+			pwd := helpers.Decipher(tc.res.Password)
+			tc.res.Password = pwd
 
 			// assert
 			assert.Equal(tc.res, res)
