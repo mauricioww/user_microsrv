@@ -34,7 +34,7 @@ func TestCreateUser(t *testing.T) {
 	test_cases := []struct {
 		test_name string
 		data      entities.User
-		res       string
+		res       int
 		err       error
 	}{
 		{
@@ -45,7 +45,7 @@ func TestCreateUser(t *testing.T) {
 				Age:       23,
 				ExtraInfo: "fav movie: fight club",
 			},
-			res: "success@email.com",
+			res: 1,
 			err: nil,
 		},
 		{
@@ -55,6 +55,7 @@ func TestCreateUser(t *testing.T) {
 				Age:       23,
 				ExtraInfo: "fav movie: fight club",
 			},
+			res: -1,
 			err: errors.New("Email or Password empty!"),
 		},
 		{
@@ -64,6 +65,7 @@ func TestCreateUser(t *testing.T) {
 				Age:       23,
 				ExtraInfo: "fav movie: fight club",
 			},
+			res: -1,
 			err: errors.New("Email or Password empty!"),
 		},
 	}

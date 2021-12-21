@@ -11,10 +11,10 @@ type RepoMock struct {
 	mock.Mock
 }
 
-func (r *RepoMock) CreateUser(ctx context.Context, user entities.User) (string, error) {
+func (r *RepoMock) CreateUser(ctx context.Context, user entities.User) (int, error) {
 	args := r.Called(ctx, user)
 
-	return args.String(0), args.Error(1)
+	return args.Int(0), args.Error(1)
 }
 
 func (r *RepoMock) Authenticate(ctx context.Context, session entities.Session) (int, error) {

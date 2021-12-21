@@ -19,7 +19,7 @@ func TestCreateUser(t *testing.T) {
 		test_name string
 		data      transport.CreateUserRequest
 		res       transport.CreateUserResponse
-		srv_res   string
+		srv_res   int
 		err       error
 	}{
 		{
@@ -30,8 +30,8 @@ func TestCreateUser(t *testing.T) {
 				Age:       23,
 				ExtraInfo: "fav movie: fight club",
 			},
-			res:     transport.CreateUserResponse{Id: "1"},
-			srv_res: "1",
+			res:     transport.CreateUserResponse{Id: 1},
+			srv_res: 1,
 			err:     nil,
 		},
 	}

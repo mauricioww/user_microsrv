@@ -10,7 +10,7 @@ message CreateUserRequest {
 }
 
 message CreateUserResponse {
-    string id = 1;
+    int32 id = 1;
 }
 
 message AuthenticateRequest {

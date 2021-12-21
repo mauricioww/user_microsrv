@@ -38,7 +38,7 @@ func TestCreateUser(t *testing.T) {
 	test_cases := []struct {
 		test_name string
 		data      entities.User
-		res       string
+		res       int
 		err       error
 	}{
 		{
@@ -49,7 +49,7 @@ func TestCreateUser(t *testing.T) {
 				Age:       23,
 				ExtraInfo: "fav movie: fight club",
 			},
-			res: "1",
+			res: 1,
 			err: nil,
 		},
 	}
@@ -62,10 +62,10 @@ func TestCreateUser(t *testing.T) {
 
 			// act
 			user_repo_mock.On("CreateUser", ctx, mock.AnythingOfType("entities.User")).Return(tc.res, tc.err)
-			_, err := grpc_user_srv.CreateUser(ctx, tc.data.Email, tc.data.Password, tc.data.ExtraInfo, tc.data.Age)
+			res, err := grpc_user_srv.CreateUser(ctx, tc.data.Email, tc.data.Password, tc.data.ExtraInfo, tc.data.Age)
 
 			// assert
-			// assert.Equal(tc.res, res)
+			assert.Equal(tc.res, res)
 			assert.Equal(tc.err, err)
 		})
 	}
@@ -309,19 +309,27 @@ func TestDeleteUser(t *testing.T) {
 			res:       true,
 			err:       nil,
 		},
+		{
+			test_name: "delete user does not exist error",
+			data:      -1,
+			res:       false,
+			err:       errors.New("User does not exists"),
+		},
 	}
 
 	for _, tc := range test_cases {
-		// prepare
-		ctx := context.Background()
-		assert := assert.New(t)
+		t.Run(tc.test_name, func(t *testing.T) {
+			// prepare
+			ctx := context.Background()
+			assert := assert.New(t)
 
-		// act
-		user_repo_mock.On("DeleteUser", ctx, tc.data).Return(tc.res, tc.err)
-		res, err := grpc_user_srv.DeleteUser(ctx, tc.data)
+			// act
+			user_repo_mock.On("DeleteUser", ctx, tc.data).Return(tc.res, tc.err)
+			res, err := grpc_user_srv.DeleteUser(ctx, tc.data)
 
-		// assert
-		assert.Equal(tc.res, res)
-		assert.Equal(tc.err, err)
+			// assert
+			assert.Equal(tc.res, res)
+			assert.Equal(tc.err, err)
+		})
 	}
 }

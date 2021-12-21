@@ -12,7 +12,7 @@ import (
 )
 
 type GrpcUserService interface {
-	CreateUser(ctx context.Context, email string, pwd string, extra_info string, age int) (string, error)
+	CreateUser(ctx context.Context, email string, pwd string, extra_info string, age int) (int, error)
 	Authenticate(ctx context.Context, email string, pwd string) (int, error)
 	UpdateUser(ctx context.Context, id int, email string, pwd string, extra_info string, age int) (entities.User, error)
 	GetUser(ctx context.Context, id int) (entities.User, error)
@@ -31,7 +31,7 @@ func NewGrpcUserService(r repository.UserSrvRepository, l log.Logger) GrpcUserSe
 	}
 }
 
-func (g *grpcUserService) CreateUser(ctx context.Context, email string, pwd string, extra_info string, age int) (string, error) {
+func (g *grpcUserService) CreateUser(ctx context.Context, email string, pwd string, extra_info string, age int) (int, error) {
 	logger := log.With(g.logger, "method", "create_user")
 	ciphered_pwd := helpers.Cipher(pwd)
 
@@ -46,11 +46,11 @@ func (g *grpcUserService) CreateUser(ctx context.Context, email string, pwd stri
 
 	if err != nil {
 		level.Error(logger).Log("ERROR", err)
-		return "", err
+	} else {
+		logger.Log("action", "success")
 	}
 
-	logger.Log("action", "success")
-	return res, nil
+	return res, err
 }
 
 func (g *grpcUserService) Authenticate(ctx context.Context, email string, pwd string) (int, error) {
@@ -69,7 +69,9 @@ func (g *grpcUserService) Authenticate(ctx context.Context, email string, pwd st
 	}
 
 	if cipher := helpers.Cipher(auth.Password); cipher != hashed_pwd {
-		return -1, errors.New("Password error")
+		e := errors.New("Password error")
+		level.Error(logger).Log("ERROR", e)
+		return -1, e
 	}
 
 	logger.Log("action", "success")
@@ -94,27 +96,27 @@ func (g *grpcUserService) UpdateUser(ctx context.Context, id int, email string, 
 	user.Password = pwd
 	if err != nil {
 		level.Error(logger).Log("ERROR", err)
-		return entities.User{}, err
+	} else {
+		logger.Log("action", "success")
 	}
 
-	logger.Log("action", "success")
-	return user, nil
+	return user, err
 }
 
 func (g *grpcUserService) GetUser(ctx context.Context, id int) (entities.User, error) {
 	logger := log.With(g.logger, "method", "get_user")
 
 	user, err := g.repository.GetUser(ctx, id)
+
 	if err != nil {
 		level.Error(logger).Log("ERROR", err)
-		return entities.User{}, err
+	} else {
+		original_pwd := helpers.Decipher(user.Password)
+		user.Password = original_pwd
+		logger.Log("action", "success")
 	}
 
-	original_pwd := helpers.Decipher(user.Password)
-	user.Password = original_pwd
-
-	logger.Log("action", "success")
-	return user, nil
+	return user, err
 }
 
 func (g *grpcUserService) DeleteUser(ctx context.Context, id int) (bool, error) {
@@ -124,8 +126,10 @@ func (g *grpcUserService) DeleteUser(ctx context.Context, id int) (bool, error) 
 
 	if err != nil {
 		level.Error(logger).Log("ERROR", err)
+		return false, err
+	} else {
+		logger.Log("action", "success")
 	}
 
-	logger.Log("action", "success")
 	return success, err
 }
