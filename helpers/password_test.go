@@ -20,11 +20,16 @@ func TestCipherText(t *testing.T) {
 			res:        "szwl",
 			flag:       true,
 		},
-
 		{
 			test_name:  "cipher plain text error",
 			plain_text: "hola",
 			res:        "hola",
+			flag:       false,
+		},
+		{
+			test_name:  "no cipher symbols",
+			plain_text: "¿?¡!.-_",
+			res:        "¿?¡!.-_",
 			flag:       false,
 		},
 	}
@@ -60,11 +65,16 @@ func TestDecipherText(t *testing.T) {
 			res:       "hola",
 			flag:      true,
 		},
-
 		{
 			test_name: "decipher text error",
 			text:      "hola",
 			res:       "hola",
+			flag:      false,
+		},
+		{
+			test_name: "no decipher symbols",
+			text:      "¿?¡!.-_",
+			res:       "¿?¡!.-_",
 			flag:      false,
 		},
 	}

@@ -2,7 +2,7 @@ package transport
 
 type (
 	CreateUserResponse struct {
-		Id string
+		Id int
 	}
 
 	AuthenticateResponse struct {

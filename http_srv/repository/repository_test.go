@@ -39,7 +39,7 @@ func TestCreateUser(t *testing.T) {
 	test_cases := []struct {
 		test_name      string
 		user           entities.User
-		repository_res string
+		repository_res int
 		err            error
 	}{
 		{
@@ -50,7 +50,7 @@ func TestCreateUser(t *testing.T) {
 				Age:       23,
 				ExtraInfo: "fav movie: fight club",
 			},
-			repository_res: "1",
+			repository_res: 1,
 			err:            nil,
 		},
 		{
@@ -60,7 +60,7 @@ func TestCreateUser(t *testing.T) {
 				Age:       23,
 				ExtraInfo: "fav movie: fight club",
 			},
-			repository_res: "",
+			repository_res: -1,
 			err:            errors.New("Email or Password empty!"),
 		},
 		{
@@ -70,7 +70,7 @@ func TestCreateUser(t *testing.T) {
 				Age:       23,
 				ExtraInfo: "fav movie: fight club",
 			},
-			repository_res: "",
+			repository_res: -1,
 			err:            errors.New("Email or Password empty!"),
 		},
 	}
@@ -88,14 +88,14 @@ func TestCreateUser(t *testing.T) {
 				AdditionalInformation: tc.user.ExtraInfo,
 			}
 
-			grpc_res := &userpb.CreateUserResponse{Id: tc.repository_res}
+			grpc_res := &userpb.CreateUserResponse{Id: int32(tc.repository_res)}
 			grpc_mock.On("CreateUser", ctx, grpc_req).Return(grpc_res, tc.err)
 
 			// act
 			res, err := grpc_mock.CreateUser(ctx, grpc_req)
 
 			// assert
-			assert.Equal(res.GetId(), tc.repository_res)
+			assert.Equal(int(res.GetId()), tc.repository_res)
 			assert.Equal(err, tc.err)
 		})
 	}

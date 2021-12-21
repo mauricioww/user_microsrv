@@ -71,7 +71,7 @@ func decodeCreateUserRequest(_ context.Context, request interface{}) (interface{
 
 func encodeCreateUserResponse(_ context.Context, response interface{}) (interface{}, error) {
 	res := response.(CreateUserResponse)
-	return &userpb.CreateUserResponse{Id: res.Id}, nil
+	return &userpb.CreateUserResponse{Id: int32(res.Id)}, nil
 }
 
 func decodeAuthenticateRequest(_ context.Context, request interface{}) (interface{}, error) {

@@ -11,10 +11,10 @@ type UserRepositoryMock struct {
 	mock.Mock
 }
 
-func (r *UserRepositoryMock) CreateUser(ctx context.Context, user entities.User) (string, error) {
+func (r *UserRepositoryMock) CreateUser(ctx context.Context, user entities.User) (int, error) {
 	args := r.Called(ctx, user)
 
-	return args.String(0), args.Error(1)
+	return args.Int(0), args.Error(1)
 }
 
 func (r *UserRepositoryMock) Authenticate(ctx context.Context, session *entities.Session) (string, error) {

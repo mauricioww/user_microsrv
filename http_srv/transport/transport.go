@@ -14,10 +14,10 @@ import (
 )
 
 func NewHTTPServer(ctx context.Context, http_endpoints HttpEndpoints) http.Handler {
-	r := mux.NewRouter()
-	r.Use(middleware)
+	root := mux.NewRouter()
+	root.Use(middleware)
 
-	user_router := r.PathPrefix("/user").Subrouter()
+	user_router := root.PathPrefix("/user").Subrouter()
 	// user_router.Use(authMiddleware)
 
 	user_router.Methods("GET").Path("/{id}").Handler(http_gokit.NewServer(
@@ -44,13 +44,13 @@ func NewHTTPServer(ctx context.Context, http_endpoints HttpEndpoints) http.Handl
 		encodeResponse,
 	))
 
-	r.Methods("GET").Path("/auth").Handler(http_gokit.NewServer(
+	root.Methods("GET").Path("/auth").Handler(http_gokit.NewServer(
 		http_endpoints.Authenticate,
 		decodeAuthenticateRequest,
 		encodeResponse,
 	))
 
-	return r
+	return root
 }
 
 func middleware(next http.Handler) http.Handler {

@@ -17,7 +17,7 @@ func TestCreateUser(t *testing.T) {
 
 	test_cases := []struct {
 		test_name  string
-		res_string string
+		res_string int
 		data       transport.CreateUserRequest
 		res        transport.CreateUserResponse
 		err        error
@@ -30,9 +30,9 @@ func TestCreateUser(t *testing.T) {
 				Age:       23,
 				ExtraInfo: "fav movie: fight club",
 			},
-			res_string: "1",
+			res_string: 1,
 			res: transport.CreateUserResponse{
-				Id:        "1",
+				Id:        1,
 				Email:     "success@email.com",
 				Password:  "qwerty",
 				Age:       23,
@@ -47,7 +47,9 @@ func TestCreateUser(t *testing.T) {
 				Age:       23,
 				ExtraInfo: "fav movie: fight club",
 			},
+			res_string: -1,
 			res: transport.CreateUserResponse{
+				Id:        -1,
 				Email:     "success@email.com",
 				Age:       23,
 				ExtraInfo: "fav movie: fight club",
@@ -61,7 +63,9 @@ func TestCreateUser(t *testing.T) {
 				Age:       23,
 				ExtraInfo: "fav movie: fight club",
 			},
+			res_string: -1,
 			res: transport.CreateUserResponse{
+				Id:        -1,
 				Password:  "qwerty",
 				Age:       23,
 				ExtraInfo: "fav movie: fight club",

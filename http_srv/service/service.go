@@ -13,7 +13,7 @@ import (
 )
 
 type HttpService interface {
-	CreateUser(ctx context.Context, email string, pwd string, extra_info string, age int) (string, error)
+	CreateUser(ctx context.Context, email string, pwd string, extra_info string, age int) (int, error)
 	Authenticate(ctx context.Context, email string, pwd string) (string, error)
 	UpdateUser(ctx context.Context, user_id int, email string, pwd string, extra_info string, age int) (entities.User, error)
 	GetUser(ctx context.Context, user_id int) (entities.User, error)
@@ -32,7 +32,7 @@ func NewHttpService(r repository.HttpRepository, l log.Logger) HttpService {
 	}
 }
 
-func (hs httpService) CreateUser(ctx context.Context, email string, pwd string, extra_info string, age int) (string, error) {
+func (hs httpService) CreateUser(ctx context.Context, email string, pwd string, extra_info string, age int) (int, error) {
 	logger := log.With(hs.logger, "method", "create_user")
 
 	user := entities.User{
@@ -46,7 +46,7 @@ func (hs httpService) CreateUser(ctx context.Context, email string, pwd string, 
 
 	if err != nil {
 		level.Error(logger).Log("ERROR: ", err)
-		return "", err
+		return -1, err
 	}
 
 	logger.Log("action", "success")

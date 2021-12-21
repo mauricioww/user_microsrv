@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"strconv"
 
 	"github.com/go-kit/kit/log"
 	"github.com/mauricioww/user_microsrv/user_srv/entities"
@@ -36,7 +35,7 @@ const (
 )
 
 type UserSrvRepository interface {
-	CreateUser(ctx context.Context, user entities.User) (string, error)
+	CreateUser(ctx context.Context, user entities.User) (int, error)
 	Authenticate(ctx context.Context, session *entities.Session) (string, error)
 	UpdateUser(ctx context.Context, information entities.Update) (entities.User, error)
 	GetUser(ctx context.Context, id int) (entities.User, error)
@@ -55,16 +54,16 @@ func NewUserSrvRepository(db *sql.DB, l log.Logger) UserSrvRepository {
 	}
 }
 
-func (r userSrvRepository) CreateUser(ctx context.Context, user entities.User) (string, error) {
+func (r userSrvRepository) CreateUser(ctx context.Context, user entities.User) (int, error) {
 	id, err := r.db.ExecContext(ctx, create_user_sql, user.Email, user.Password, user.Age, user.ExtraInfo)
 
 	if err != nil {
-		return "", errors.New("Internal Error")
+		return -1, errors.New("Internal Error")
 	}
 
 	n, _ := id.LastInsertId()
 
-	return strconv.FormatInt(n, 10), nil
+	return int(n), nil
 }
 
 func (r userSrvRepository) Authenticate(ctx context.Context, session *entities.Session) (string, error) {
@@ -109,6 +108,11 @@ func (r userSrvRepository) GetUser(ctx context.Context, id int) (entities.User, 
 }
 
 func (r userSrvRepository) DeleteUser(ctx context.Context, id int) (bool, error) {
+
+	if err := r.db.QueryRow(get_user_by_id, id).Scan(); err == sql.ErrNoRows {
+		return false, errors.New("User does not exist")
+	}
+
 	_, err := r.db.ExecContext(ctx, delete_user_sql, id)
 
 	if err != nil {
