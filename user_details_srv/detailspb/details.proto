@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option go_package = "./;detailspb";
+
+message SetUserDetailsRequest {
+    uint32 user_id = 1;
+    string country = 2;
+    string city = 3;
+    string mobile_number = 4;
+    bool married = 5;
+    float height = 6;
+    float weigth = 7;
+}
+
+message SetUserDetailsResponse {
+    bool success = 1;
+}
+
+service UserDetailsService {
+    rpc SetUserDetails(SetUserDetailsRequest) returns (SetUserDetailsResponse) {};
+}
