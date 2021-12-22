@@ -47,9 +47,9 @@ type userSrvRepository struct {
 	logger log.Logger
 }
 
-func NewUserSrvRepository(db *sql.DB, l log.Logger) UserSrvRepository {
+func NewUserSrvRepository(mysql_db *sql.DB, l log.Logger) UserSrvRepository {
 	return &userSrvRepository{
-		db:     db,
+		db:     mysql_db,
 		logger: log.With(l, "repository", "mysql"),
 	}
 }
