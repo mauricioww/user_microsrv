@@ -1,11 +1,13 @@
 package transport
 
+import "github.com/mauricioww/user_microsrv/http_srv/entities"
+
 type (
 	CreateUserRequest struct {
-		Email     string `json:"email"`
-		Password  string `json:"password"`
-		Age       int    `json:"age"`
-		ExtraInfo string `json:"additional_information"`
+		Email            string `json:"email"`
+		Password         string `json:"password"`
+		Age              int    `json:"age"`
+		entities.Details `json:"information"`
 	}
 
 	AuthenticateRequest struct {
@@ -14,11 +16,11 @@ type (
 	}
 
 	UpdateUserRequest struct {
-		UserId    int
-		Email     string `json:"email"`
-		Password  string `json:"password"`
-		Age       int    `json:"age"`
-		ExtraInfo string `json:"additional_information"`
+		UserId           int
+		Email            string `json:"email"`
+		Password         string `json:"password"`
+		Age              int    `json:"age"`
+		entities.Details `json:"information"`
 	}
 
 	GetUserRequest struct {

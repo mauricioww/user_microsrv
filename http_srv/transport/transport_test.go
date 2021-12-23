@@ -25,50 +25,46 @@ func TestCreateUser(t *testing.T) {
 		{
 			test_name: "user created successfully",
 			data: transport.CreateUserRequest{
-				Email:     "success@email.com",
-				Password:  "qwerty",
-				Age:       23,
-				ExtraInfo: "fav movie: fight club",
+				Email:    "success@email.com",
+				Password: "qwerty",
+				Age:      23,
+				Details:  transport.GenereateDetails(),
 			},
 			res_string: 1,
 			res: transport.CreateUserResponse{
-				Id:        1,
-				Email:     "success@email.com",
-				Password:  "qwerty",
-				Age:       23,
-				ExtraInfo: "fav movie: fight club",
+				Id:       1,
+				Email:    "success@email.com",
+				Password: "qwerty",
+				Age:      23,
+				Details:  transport.GenereateDetails(),
 			},
 			err: nil,
 		},
 		{
 			test_name: "no password error",
 			data: transport.CreateUserRequest{
-				Email:     "success@email.com",
-				Age:       23,
-				ExtraInfo: "fav movie: fight club",
+				Email: "success@email.com",
+				Age:   23,
 			},
 			res_string: -1,
 			res: transport.CreateUserResponse{
-				Id:        -1,
-				Email:     "success@email.com",
-				Age:       23,
-				ExtraInfo: "fav movie: fight club",
+				Id:    -1,
+				Email: "success@email.com",
+				Age:   23,
 			},
 			err: errors.New("Email or Password empty!"),
 		},
 		{
 			test_name: "no email error",
 			data: transport.CreateUserRequest{
-				Password:  "qwerty",
-				Age:       23,
-				ExtraInfo: "fav movie: fight club",
+				Password: "qwerty",
+				Age:      23,
 			},
 			res_string: -1,
 			res: transport.CreateUserResponse{
-				Id:        -1,
-				Password:  "qwerty",
-				Age:       23,
-				ExtraInfo: "fav movie: fight club",
+				Id:       -1,
+				Password: "qwerty",
+				Age:      23,
 			},
 			err: errors.New("Email or Password empty!"),
 		},
@@ -80,7 +76,8 @@ func TestCreateUser(t *testing.T) {
 			assert := assert.New(t)
 			ctx := context.Background()
 
-			http_srv_mock.On("CreateUser", ctx, tc.data.Email, tc.data.Password, tc.data.ExtraInfo, tc.data.Age).Return(tc.res_string, tc.err)
+			http_srv_mock.On("CreateUser", ctx, tc.data.Email, tc.data.Password, tc.data.Age, tc.data.Details).
+				Return(tc.res_string, tc.err)
 
 			// act
 			res, err := endpoints.CreateUser(ctx, tc.data)
@@ -183,24 +180,21 @@ func TestUpdateUser(t *testing.T) {
 		{
 			test_name: "update user success",
 			data: transport.UpdateUserRequest{
-				UserId:    1,
-				Email:     "new_email@domain.com",
-				Password:  "new_password",
-				Age:       23,
-				ExtraInfo: "new_extra_info",
+				UserId:   1,
+				Email:    "new_email@domain.com",
+				Password: "new_password",
+				Age:      23,
 			},
 			user_res: entities.User{
-				Email:     "new_email@domain.com",
-				Password:  "new_password",
-				Age:       23,
-				ExtraInfo: "new_extra_info",
+				Email:    "new_email@domain.com",
+				Password: "new_password",
+				Age:      23,
 			},
 			res: transport.UpdateUserResponse{
-				Id:        1,
-				Email:     "new_email@domain.com",
-				Password:  "new_password",
-				Age:       23,
-				ExtraInfo: "new_extra_info",
+				Id:       1,
+				Email:    "new_email@domain.com",
+				Password: "new_password",
+				Age:      23,
 			},
 		},
 	}
@@ -210,7 +204,7 @@ func TestUpdateUser(t *testing.T) {
 		ctx := context.Background()
 		assert := assert.New(t)
 
-		http_srv_mock.On("UpdateUser", ctx, tc.data.UserId, tc.data.Email, tc.data.Password, tc.data.ExtraInfo, tc.data.Age).Return(tc.user_res, tc.err)
+		http_srv_mock.On("UpdateUser", ctx, tc.data.UserId, tc.data.Email, tc.data.Password, tc.data.Age).Return(tc.user_res, tc.err)
 
 		// act
 		res, err := endpoints.UpdateUser(ctx, tc.data)
@@ -239,17 +233,15 @@ func TestGetUser(t *testing.T) {
 				UserId: 1,
 			},
 			user_res: entities.User{
-				Email:     "email@email.com",
-				Password:  "password",
-				Age:       23,
-				ExtraInfo: "extra_info",
+				Email:    "email@email.com",
+				Password: "password",
+				Age:      23,
 			},
 			res: transport.GetUserResponse{
-				Id:        1,
-				Email:     "email@email.com",
-				Password:  "password",
-				Age:       23,
-				ExtraInfo: "extra_info",
+				Id:       1,
+				Email:    "email@email.com",
+				Password: "password",
+				Age:      23,
 			},
 		},
 	}

@@ -13,9 +13,9 @@ import (
 )
 
 type HttpService interface {
-	CreateUser(ctx context.Context, email string, pwd string, extra_info string, age int) (int, error)
+	CreateUser(ctx context.Context, email string, pwd string, age int, details entities.Details) (int, error)
 	Authenticate(ctx context.Context, email string, pwd string) (string, error)
-	UpdateUser(ctx context.Context, user_id int, email string, pwd string, extra_info string, age int) (entities.User, error)
+	UpdateUser(ctx context.Context, user_id int, email string, pwd string, age int) (entities.User, error)
 	GetUser(ctx context.Context, user_id int) (entities.User, error)
 	DeleteUser(ctx context.Context, user_id int) (bool, error)
 }
@@ -32,14 +32,14 @@ func NewHttpService(r repository.HttpRepository, l log.Logger) HttpService {
 	}
 }
 
-func (hs httpService) CreateUser(ctx context.Context, email string, pwd string, extra_info string, age int) (int, error) {
+func (hs httpService) CreateUser(ctx context.Context, email string, pwd string, age int, details entities.Details) (int, error) {
 	logger := log.With(hs.logger, "method", "create_user")
 
 	user := entities.User{
-		Email:     email,
-		Password:  pwd,
-		Age:       age,
-		ExtraInfo: extra_info,
+		Email:    email,
+		Password: pwd,
+		Age:      age,
+		Details:  details,
 	}
 
 	res, err := hs.repository.CreateUser(ctx, user)
@@ -88,16 +88,15 @@ func (hs httpService) Authenticate(ctx context.Context, email string, pwd string
 	return response, nil
 }
 
-func (hs httpService) UpdateUser(ctx context.Context, user_id int, email string, pwd string, extra_info string, age int) (entities.User, error) {
+func (hs httpService) UpdateUser(ctx context.Context, user_id int, email string, pwd string, age int) (entities.User, error) {
 	logger := log.With(hs.logger, "method", "authenticate")
 
 	info_update := entities.UserUpdate{
 		UserId: user_id,
 		User: entities.User{
-			Email:     email,
-			Password:  pwd,
-			ExtraInfo: extra_info,
-			Age:       age,
+			Email:    email,
+			Password: pwd,
+			Age:      age,
 		},
 	}
 

@@ -1,12 +1,14 @@
 package transport
 
+import "github.com/mauricioww/user_microsrv/http_srv/entities"
+
 type (
 	CreateUserResponse struct {
-		Id        int    `json:"user_id"`
-		Email     string `json:"email"`
-		Password  string `json:"password"`
-		Age       int    `json:"age"`
-		ExtraInfo string `json:"extra_information"`
+		Id               int    `json:"user_id"`
+		Email            string `json:"email"`
+		Password         string `json:"password"`
+		Age              int    `json:"age"`
+		entities.Details `json:"information"`
 	}
 
 	AuthenticateResponse struct {
@@ -14,19 +16,18 @@ type (
 	}
 
 	UpdateUserResponse struct {
-		Id        int    `json:"user_id"`
-		Email     string `json:"email"`
-		Password  string `json:"password"`
-		Age       int    `json:"age"`
-		ExtraInfo string `json:"extra_information"`
+		Id               int    `json:"user_id"`
+		Email            string `json:"email"`
+		Password         string `json:"password"`
+		Age              int    `json:"age"`
+		entities.Details `json:"information"`
 	}
 
 	GetUserResponse struct {
-		Id        int    `json:"user_id"`
-		Email     string `json:"email"`
-		Password  string `json:"password"`
-		Age       int    `json:"age"`
-		ExtraInfo string `json:"extra_information"`
+		Id       int    `json:"user_id"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
+		Age      int    `json:"age"`
 	}
 
 	DeleteUserResponse struct {
