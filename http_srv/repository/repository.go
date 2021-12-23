@@ -16,7 +16,7 @@ import (
 type HttpRepository interface {
 	CreateUser(ctx context.Context, user entities.User) (int, error)
 	Authenticate(ctx context.Context, session entities.Session) (int, error)
-	UpdateUser(ctx context.Context, user entities.UserUpdate) (entities.User, error)
+	UpdateUser(ctx context.Context, user entities.UserUpdate) (bool, error)
 	GetUser(ctx context.Context, id int) (entities.User, error)
 	DeleteUser(ctx context.Context, id int) (bool, error)
 }
@@ -94,8 +94,9 @@ func (hr httpRepository) Authenticate(ctx context.Context, session entities.Sess
 	return int(grpc_res.GetUserId()), nil
 }
 
-func (hr httpRepository) UpdateUser(ctx context.Context, user entities.UserUpdate) (entities.User, error) {
+func (hr httpRepository) UpdateUser(ctx context.Context, user entities.UserUpdate) (bool, error) {
 	logger := log.With(hr.logger, "method", "update_user")
+	var res bool
 
 	user_req := userpb.UpdateUserRequest{
 		Id:       uint32(user.UserId),
@@ -116,22 +117,20 @@ func (hr httpRepository) UpdateUser(ctx context.Context, user entities.UserUpdat
 	user_res, err := hr.user_client.UpdateUser(ctx, &user_req)
 	if err != nil {
 		level.Error(logger).Log("err", err)
-		return entities.User{}, err
+		return false, err
 	}
 
-	_, err = hr.details_client.SetUserDetails(ctx, &details_req)
+	res = user_res.GetSuccess()
+
+	details_res, err := hr.details_client.SetUserDetails(ctx, &details_req)
 	if err != nil {
 		level.Error(logger).Log("err", err)
-		return entities.User{}, err
+		return false, err
 	}
 
-	u := entities.User{
-		Email:    user_res.GetEmail(),
-		Password: user_res.GetPassword(),
-		Age:      int(user_res.GetAge()),
-	}
+	res = details_res.GetSuccess()
 
-	return u, nil
+	return res, nil
 }
 
 func (hr httpRepository) GetUser(ctx context.Context, id int) (entities.User, error) {

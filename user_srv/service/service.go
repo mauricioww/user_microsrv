@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/log/level"
@@ -87,21 +86,17 @@ func (g *grpcUserService) UpdateUser(ctx context.Context, id int, email string, 
 	update_info := entities.Update{
 		UserId: id,
 		User: entities.User{
-			Email:     email,
-			Password:  ciphered_pwd,
-			ExtraInfo: extra_info,
-			Age:       age,
+			Email:    email,
+			Password: ciphered_pwd,
+			Age:      age,
 		},
 	}
 
 	u, err := g.repository.UpdateUser(ctx, update_info)
-	u.Password = pwd
 
-	fmt.Println(update_info)
-	fmt.Println(u)
 	if err != nil {
 		level.Error(logger).Log("ERROR", err)
-	} else if u.Email == email && u.Password == pwd && u.Age == age {
+	} else if u.Email == email && helpers.Decipher(u.Password) == pwd && u.Age == age {
 		logger.Log("action", "success")
 		res = true
 	}

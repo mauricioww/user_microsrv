@@ -191,7 +191,6 @@ func TestUpdateUser(t *testing.T) {
 				Age:      23,
 			},
 			res: transport.UpdateUserResponse{
-				Id:       1,
 				Email:    "new_email@domain.com",
 				Password: "new_password",
 				Age:      23,
@@ -204,7 +203,7 @@ func TestUpdateUser(t *testing.T) {
 		ctx := context.Background()
 		assert := assert.New(t)
 
-		http_srv_mock.On("UpdateUser", ctx, tc.data.UserId, tc.data.Email, tc.data.Password, tc.data.Age).Return(tc.user_res, tc.err)
+		http_srv_mock.On("UpdateUser", ctx, tc.data.UserId, tc.data.Email, tc.data.Password, tc.data.Age, tc.data.Details).Return(tc.user_res, tc.err)
 
 		// act
 		res, err := endpoints.UpdateUser(ctx, tc.data)

@@ -72,12 +72,12 @@ func TestCreateUser(t *testing.T) {
 
 			details_req := &detailspb.SetUserDetailsRequest{
 				UserId:       uint32(tc.repository_res),
-				Country:      tc.user.Details.Country,
-				City:         tc.user.Details.City,
-				MobileNumber: tc.user.Details.MobileNumber,
-				Married:      tc.user.Details.Married,
-				Height:       tc.user.Details.Height,
-				Weigth:       tc.user.Details.Weigth,
+				Country:      tc.user.Country,
+				City:         tc.user.City,
+				MobileNumber: tc.user.MobileNumber,
+				Married:      tc.user.Married,
+				Height:       tc.user.Height,
+				Weigth:       tc.user.Weigth,
 			}
 
 			user_res := &userpb.CreateUserResponse{Id: int32(tc.repository_res)}
@@ -183,40 +183,29 @@ func TestAuthenticate(t *testing.T) {
 func UpdateUser(t *testing.T) {
 	user_mock := new(repository.GrpcUserMock)
 	details_mock := new(repository.GrpcDetailsMock)
-	conn1, conn2, _ := repository.InitRepoMock(user_mock, details_mock)
+	conn1, conn2, http_repository := repository.InitRepoMock(user_mock, details_mock)
 
 	defer conn1.Close()
 	defer conn2.Close()
 
-	// http_repository := repository.NewHttpRepository(conn, logger)
-
 	test_cases := []struct {
 		test_name string
-		fields    []string
-		prev_user entities.User
-		aft_user  entities.User
+		data      entities.UserUpdate
+		res       bool
 		err       error
 	}{
 		{
 			test_name: "Update email successfully",
-			prev_user: entities.User{
-				Email: "user@email.com",
+			data: entities.UserUpdate{
+				UserId: 0,
+				User: entities.User{
+					Email:    "email@domian.com",
+					Password: "qwerty",
+					Age:      23,
+					Details:  repository.GenereateDetails(),
+				},
 			},
-			aft_user: entities.User{
-				Email: "new_email@domain.com",
-			},
-			err: nil,
-		},
-		{
-			test_name: "Update email and password successfully",
-			prev_user: entities.User{
-				Email:    "user@email.com",
-				Password: "password",
-			},
-			aft_user: entities.User{
-				Email:    "new_email@domain.com",
-				Password: "new_password",
-			},
+			res: true,
 			err: nil,
 		},
 	}
@@ -227,24 +216,33 @@ func UpdateUser(t *testing.T) {
 			ctx := context.Background()
 			assert := assert.New(t)
 
-			grpc_req := &userpb.UpdateUserRequest{
-				Email:    tc.prev_user.Email,
-				Password: tc.prev_user.Password,
-				Age:      uint32(tc.prev_user.Age),
+			user_req := &userpb.UpdateUserRequest{
+				Id:       uint32(tc.data.Age),
+				Email:    tc.data.Email,
+				Password: tc.data.Password,
+				Age:      uint32(tc.data.Age),
+			}
+			details_req := &detailspb.SetUserDetailsRequest{
+				UserId:       uint32(tc.data.UserId),
+				Country:      tc.data.Country,
+				City:         tc.data.City,
+				MobileNumber: tc.data.MobileNumber,
+				Married:      tc.data.Married,
+				Height:       tc.data.Height,
+				Weigth:       tc.data.Weigth,
 			}
 
-			grpc_res := &userpb.UpdateUserResponse{
-				Email:    tc.aft_user.Email,
-				Password: tc.aft_user.Password,
-				Age:      uint32(tc.aft_user.Age),
-			}
-			user_mock.On("UpdateUser", ctx, grpc_req).Return(grpc_res, tc.err)
+			user_res := &userpb.UpdateUserResponse{Success: tc.res}
+			details_res := &detailspb.SetUserDetailsResponse{Success: tc.res}
+
+			user_mock.On("UpdateUser", ctx, user_req).Return(user_res, tc.err)
+			details_mock.On("SetUserDetails", mock.Anything, details_req).Return(details_res, tc.err)
 
 			// act
-			res, err := user_mock.UpdateUser(ctx, grpc_req)
+			res, err := http_repository.UpdateUser(ctx, tc.data)
 
 			// assert
-			assert.Equal(res, grpc_res)
+			assert.Equal(res, user_res)
 			assert.Equal(err, tc.err)
 		})
 	}

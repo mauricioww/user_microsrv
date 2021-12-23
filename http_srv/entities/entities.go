@@ -25,6 +25,5 @@ type (
 	UserUpdate struct {
 		UserId int
 		User
-		Details
 	}
 )
