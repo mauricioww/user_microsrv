@@ -16,7 +16,6 @@ type (
 	}
 
 	UpdateUserResponse struct {
-		Id               int    `json:"user_id"`
 		Email            string `json:"email"`
 		Password         string `json:"password"`
 		Age              int    `json:"age"`
