@@ -31,10 +31,7 @@ message UpdateUserRequest {
 }
 
 message UpdateUserResponse {
-    string email = 1;
-    string password = 2;
-    uint32 age = 3;
-    string additional_information = 4;
+    bool success = 1;
 }
 
 message GetUserRequest {

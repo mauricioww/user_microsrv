@@ -114,7 +114,7 @@ func TestUpdateUser(t *testing.T) {
 		test_name string
 		data      transport.UpdateUserRequest
 		res       transport.UpdateUserResponse
-		srv_res   entities.User
+		srv_res   bool
 		err       error
 	}{
 		{
@@ -125,15 +125,9 @@ func TestUpdateUser(t *testing.T) {
 				Password: "new_password",
 				Age:      25,
 			},
-			srv_res: entities.User{
-				Email:    "new_email@domain.com",
-				Password: "new_password",
-				Age:      25,
-			},
+			srv_res: true,
 			res: transport.UpdateUserResponse{
-				Email:    "new_email@domain.com",
-				Password: "new_password",
-				Age:      25,
+				Success: true,
 			},
 			err: nil,
 		},
