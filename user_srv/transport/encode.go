@@ -10,10 +10,7 @@ type (
 	}
 
 	UpdateUserResponse struct {
-		Email     string
-		Password  string
-		Age       int
-		ExtraInfo string
+		Success bool
 	}
 
 	GetUserResponse struct {

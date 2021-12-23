@@ -116,12 +116,7 @@ func decodeUpdateUserRequest(_ context.Context, request interface{}) (interface{
 func encondeUpdateUserResponse(_ context.Context, response interface{}) (interface{}, error) {
 	res := response.(UpdateUserResponse)
 
-	return &userpb.UpdateUserResponse{
-		Email:                 res.Email,
-		Password:              res.Password,
-		Age:                   uint32(res.Age),
-		AdditionalInformation: res.ExtraInfo,
-	}, nil
+	return &userpb.UpdateUserResponse{Success: res.Success}, nil
 }
 
 func decodeGetUserRequest(_ context.Context, request interface{}) (interface{}, error) {

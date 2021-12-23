@@ -174,7 +174,8 @@ func TestUpdateUser(t *testing.T) {
 	test_cases := []struct {
 		test_name string
 		data      entities.Update
-		res       entities.User
+		repo_res  entities.User
+		res       bool
 		err       error
 	}{
 		{
@@ -186,10 +187,11 @@ func TestUpdateUser(t *testing.T) {
 					Password: "new_password",
 				},
 			},
-			res: entities.User{
+			repo_res: entities.User{
 				Email:    "new_email@domain.com",
 				Password: "new_password",
 			},
+			res: true,
 			err: nil,
 		},
 	}
@@ -201,7 +203,7 @@ func TestUpdateUser(t *testing.T) {
 			assert := assert.New(t)
 
 			// act
-			user_repo_mock.On("UpdateUser", ctx, mock.AnythingOfType("entities.Update")).Return(tc.res, tc.err)
+			user_repo_mock.On("UpdateUser", ctx, mock.Anything).Return(tc.repo_res, tc.err)
 			res, err := grpc_user_srv.UpdateUser(ctx, tc.data.UserId, tc.data.Email, tc.data.Password, tc.data.ExtraInfo, tc.data.Age)
 
 			// assert

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/log/level"
@@ -14,7 +15,7 @@ import (
 type GrpcUserService interface {
 	CreateUser(ctx context.Context, email string, pwd string, extra_info string, age int) (int, error)
 	Authenticate(ctx context.Context, email string, pwd string) (int, error)
-	UpdateUser(ctx context.Context, id int, email string, pwd string, extra_info string, age int) (entities.User, error)
+	UpdateUser(ctx context.Context, id int, email string, pwd string, extra_info string, age int) (bool, error)
 	GetUser(ctx context.Context, id int) (entities.User, error)
 	DeleteUser(ctx context.Context, id int) (bool, error)
 }
@@ -78,9 +79,10 @@ func (g *grpcUserService) Authenticate(ctx context.Context, email string, pwd st
 	return auth.Id, nil
 }
 
-func (g *grpcUserService) UpdateUser(ctx context.Context, id int, email string, pwd string, extra_info string, age int) (entities.User, error) {
+func (g *grpcUserService) UpdateUser(ctx context.Context, id int, email string, pwd string, extra_info string, age int) (bool, error) {
 	logger := log.With(g.logger, "method", "update_user")
 	ciphered_pwd := helpers.Cipher(pwd)
+	var res bool
 
 	update_info := entities.Update{
 		UserId: id,
@@ -92,15 +94,19 @@ func (g *grpcUserService) UpdateUser(ctx context.Context, id int, email string, 
 		},
 	}
 
-	user, err := g.repository.UpdateUser(ctx, update_info)
-	user.Password = pwd
+	u, err := g.repository.UpdateUser(ctx, update_info)
+	u.Password = pwd
+
+	fmt.Println(update_info)
+	fmt.Println(u)
 	if err != nil {
 		level.Error(logger).Log("ERROR", err)
-	} else {
+	} else if u.Email == email && u.Password == pwd && u.Age == age {
 		logger.Log("action", "success")
+		res = true
 	}
 
-	return user, err
+	return res, err
 }
 
 func (g *grpcUserService) GetUser(ctx context.Context, id int) (entities.User, error) {
