@@ -28,8 +28,8 @@ func MakeHttpEndpoints(http_srv service.HttpService) HttpEndpoints {
 func makeCreateUserEndpoint(http_srv service.HttpService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(CreateUserRequest)
-		res, err := http_srv.CreateUser(ctx, req.Email, req.Password, req.ExtraInfo, req.Age)
-		return CreateUserResponse{Id: res, Email: req.Email, Password: req.Password, Age: req.Age, ExtraInfo: req.ExtraInfo}, err
+		res, err := http_srv.CreateUser(ctx, req.Email, req.Password, req.Age, req.Details)
+		return CreateUserResponse{Id: res, Email: req.Email, Password: req.Password, Age: req.Age, Details: req.Details}, err
 	}
 }
 
@@ -44,8 +44,8 @@ func makeAuthenticateEndpoint(http_srv service.HttpService) endpoint.Endpoint {
 func makeUpdateUserEndpoint(http_srv service.HttpService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(UpdateUserRequest)
-		res, err := http_srv.UpdateUser(ctx, req.UserId, req.Email, req.Password, req.ExtraInfo, req.Age)
-		return UpdateUserResponse{Id: req.UserId, Email: res.Email, Password: req.Password, Age: res.Age, ExtraInfo: res.ExtraInfo}, err
+		res, err := http_srv.UpdateUser(ctx, req.UserId, req.Email, req.Password, req.Age)
+		return UpdateUserResponse{Id: req.UserId, Email: res.Email, Password: req.Password, Age: res.Age}, err
 	}
 }
 
@@ -53,7 +53,7 @@ func makeGetUserEndpoint(http_srv service.HttpService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(GetUserRequest)
 		res, err := http_srv.GetUser(ctx, req.UserId)
-		return GetUserResponse{Id: req.UserId, Email: res.Email, Password: res.Password, Age: res.Age, ExtraInfo: res.ExtraInfo}, err
+		return GetUserResponse{Id: req.UserId, Email: res.Email, Password: res.Password, Age: res.Age}, err
 	}
 }
 

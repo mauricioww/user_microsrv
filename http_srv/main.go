@@ -35,10 +35,18 @@ func main() {
 	level.Info(logger).Log("mesg", "service started")
 	defer level.Info(logger).Log("msg", "service ended")
 
-	var grpc_client *grpc.ClientConn
+	var user_grpc, user_details_grpc *grpc.ClientConn
 	var grpc_err error
 	{
-		grpc_client, grpc_err = grpc.Dial("0.0.0.0:50051", grpc.WithInsecure())
+		// user_grpc
+		user_grpc, grpc_err = grpc.Dial("0.0.0.0:50051", grpc.WithInsecure())
+		if grpc_err != nil {
+			level.Error(logger).Log("gRPC", grpc_err)
+			os.Exit(-1)
+		}
+
+		// user_details_grpc
+		user_details_grpc, grpc_err = grpc.Dial("0.0.0.0:50052", grpc.WithInsecure())
 		if grpc_err != nil {
 			level.Error(logger).Log("gRPC", grpc_err)
 			os.Exit(-1)
@@ -48,7 +56,7 @@ func main() {
 	ctx := context.Background()
 	var http_srv service.HttpService
 	{
-		repository := repository.NewHttpRepository(grpc_client, logger)
+		repository := repository.NewHttpRepository(user_grpc, user_details_grpc, logger)
 		http_srv = service.NewHttpService(repository, logger)
 	}
 

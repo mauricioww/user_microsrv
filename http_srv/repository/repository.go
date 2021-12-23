@@ -3,10 +3,12 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/mauricioww/user_microsrv/http_srv/entities"
+	"github.com/mauricioww/user_microsrv/user_details_srv/detailspb"
 	"github.com/mauricioww/user_microsrv/user_srv/userpb"
 	"google.golang.org/grpc"
 )
@@ -20,38 +22,55 @@ type HttpRepository interface {
 }
 
 type httpRepository struct {
-	client userpb.UserServiceClient
-	logger log.Logger
+	user_client    userpb.UserServiceClient
+	details_client detailspb.UserDetailsServiceClient
+	logger         log.Logger
 }
 
-func NewHttpRepository(conn *grpc.ClientConn, logger log.Logger) HttpRepository {
+func NewHttpRepository(conn1 *grpc.ClientConn, conn2 *grpc.ClientConn, logger log.Logger) HttpRepository {
 	return httpRepository{
-		client: userpb.NewUserServiceClient(conn),
-		logger: log.With(logger, "http_repository", "proxy?"),
+		user_client:    userpb.NewUserServiceClient(conn1),
+		details_client: detailspb.NewUserDetailsServiceClient(conn2),
+		logger:         log.With(logger, "http_repository", "proxy?"),
 	}
 }
 
 func (hr httpRepository) CreateUser(ctx context.Context, user entities.User) (int, error) {
 	logger := log.With(hr.logger, "method", "create_users")
 
-	if user.Email == "" || user.Password == "" {
-		return -1, errors.New("Email or Password empty!")
+	userpb_req := userpb.CreateUserRequest{
+		Email:    user.Email,
+		Password: user.Password,
+		Age:      uint32(user.Age),
 	}
 
-	grpc_req := userpb.CreateUserRequest{
-		Email:                 user.Email,
-		Password:              user.Password,
-		Age:                   uint32(user.Age),
-		AdditionalInformation: user.ExtraInfo,
-	}
-	grpc_res, err := hr.client.CreateUser(ctx, &grpc_req)
-
+	user_res, err := hr.user_client.CreateUser(ctx, &userpb_req)
 	if err != nil {
 		level.Error(logger).Log("err", err)
 		return -1, err
 	}
 
-	return int(grpc_res.Id), nil
+	detailspb_req := detailspb.SetUserDetailsRequest{
+		UserId:       uint32(user_res.GetId()),
+		Country:      user.Details.Country,
+		City:         user.Details.City,
+		MobileNumber: user.Details.MobileNumber,
+		Married:      user.Details.Married,
+		Height:       user.Details.Height,
+		Weigth:       user.Details.Weigth,
+	}
+
+	details_res, err := hr.details_client.SetUserDetails(ctx, &detailspb_req)
+	if err != nil {
+		level.Error(logger).Log("err", err)
+		return -1, err
+	}
+
+	if details_res.GetSuccess() {
+		fmt.Println("details setted")
+	}
+
+	return int(user_res.Id), nil
 }
 
 func (hr httpRepository) Authenticate(ctx context.Context, session entities.Session) (int, error) {
@@ -65,7 +84,7 @@ func (hr httpRepository) Authenticate(ctx context.Context, session entities.Sess
 		Email:    session.Email,
 		Password: session.Password,
 	}
-	grpc_res, err := hr.client.Authenticate(ctx, &grpc_req)
+	grpc_res, err := hr.user_client.Authenticate(ctx, &grpc_req)
 
 	if err != nil {
 		level.Error(logger).Log("err", err)
@@ -78,26 +97,38 @@ func (hr httpRepository) Authenticate(ctx context.Context, session entities.Sess
 func (hr httpRepository) UpdateUser(ctx context.Context, user entities.UserUpdate) (entities.User, error) {
 	logger := log.With(hr.logger, "method", "update_user")
 
-	grpc_req := userpb.UpdateUserRequest{
-		Id:                    uint32(user.UserId),
-		Email:                 user.Email,
-		Password:              user.Password,
-		Age:                   uint32(user.Age),
-		AdditionalInformation: user.ExtraInfo,
+	user_req := userpb.UpdateUserRequest{
+		Id:       uint32(user.UserId),
+		Email:    user.Email,
+		Password: user.Password,
+		Age:      uint32(user.Age),
+	}
+	details_req := detailspb.SetUserDetailsRequest{
+		UserId:       uint32(user.UserId),
+		Country:      user.Details.Country,
+		City:         user.Details.City,
+		MobileNumber: user.Details.MobileNumber,
+		Married:      user.Details.Married,
+		Height:       user.Details.Height,
+		Weigth:       user.Details.Weigth,
 	}
 
-	grpc_res, err := hr.client.UpdateUser(ctx, &grpc_req)
+	user_res, err := hr.user_client.UpdateUser(ctx, &user_req)
+	if err != nil {
+		level.Error(logger).Log("err", err)
+		return entities.User{}, err
+	}
 
+	_, err = hr.details_client.SetUserDetails(ctx, &details_req)
 	if err != nil {
 		level.Error(logger).Log("err", err)
 		return entities.User{}, err
 	}
 
 	u := entities.User{
-		Email:     grpc_res.GetEmail(),
-		Password:  grpc_res.GetPassword(),
-		Age:       int(grpc_res.GetAge()),
-		ExtraInfo: grpc_res.AdditionalInformation,
+		Email:    user_res.GetEmail(),
+		Password: user_res.GetPassword(),
+		Age:      int(user_res.GetAge()),
 	}
 
 	return u, nil
@@ -110,7 +141,7 @@ func (hr httpRepository) GetUser(ctx context.Context, id int) (entities.User, er
 		Id: uint32(id),
 	}
 
-	grpc_res, err := hr.client.GetUser(ctx, &grpc_req)
+	grpc_res, err := hr.user_client.GetUser(ctx, &grpc_req)
 
 	if err != nil {
 		level.Error(logger).Log("err", err)
@@ -118,10 +149,9 @@ func (hr httpRepository) GetUser(ctx context.Context, id int) (entities.User, er
 	}
 
 	u := entities.User{
-		Email:     grpc_res.GetEmail(),
-		Password:  grpc_res.GetPassword(),
-		Age:       int(grpc_res.GetAge()),
-		ExtraInfo: grpc_res.GetAdditionalInformation(),
+		Email:    grpc_res.GetEmail(),
+		Password: grpc_res.GetPassword(),
+		Age:      int(grpc_res.GetAge()),
 	}
 
 	return u, nil
@@ -134,7 +164,7 @@ func (hr httpRepository) DeleteUser(ctx context.Context, id int) (bool, error) {
 		Id: uint32(id),
 	}
 
-	grpc_res, err := hr.client.DeleteUser(ctx, &grpc_req)
+	grpc_res, err := hr.user_client.DeleteUser(ctx, &grpc_req)
 
 	if err != nil {
 		level.Error(logger).Log("err", err)

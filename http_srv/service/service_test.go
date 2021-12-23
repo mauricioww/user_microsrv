@@ -40,10 +40,17 @@ func TestCreateUser(t *testing.T) {
 		{
 			test_name: "user created successfully",
 			data: entities.User{
-				Email:     "success@email.com",
-				Password:  "qwerty",
-				Age:       23,
-				ExtraInfo: "fav movie: fight club",
+				Email:    "success@email.com",
+				Password: "qwerty",
+				Age:      23,
+				Details: entities.Details{
+					Country:      "Mexico",
+					City:         "CDMX",
+					MobileNumber: "11223344",
+					Married:      false,
+					Height:       1.75,
+					Weigth:       76.0,
+				},
 			},
 			res: 1,
 			err: nil,
@@ -51,9 +58,8 @@ func TestCreateUser(t *testing.T) {
 		{
 			test_name: "no email error",
 			data: entities.User{
-				Password:  "qwerty",
-				Age:       23,
-				ExtraInfo: "fav movie: fight club",
+				Password: "qwerty",
+				Age:      23,
 			},
 			res: -1,
 			err: errors.New("Email or Password empty!"),
@@ -61,9 +67,8 @@ func TestCreateUser(t *testing.T) {
 		{
 			test_name: "no password error",
 			data: entities.User{
-				Email:     "success@email.com",
-				Age:       23,
-				ExtraInfo: "fav movie: fight club",
+				Email: "success@email.com",
+				Age:   23,
 			},
 			res: -1,
 			err: errors.New("Email or Password empty!"),
@@ -78,7 +83,7 @@ func TestCreateUser(t *testing.T) {
 
 			// act
 			repository_mock.On("CreateUser", ctx, tc.data).Return(tc.res, tc.err)
-			res, err := http_service.CreateUser(ctx, tc.data.Email, tc.data.Password, tc.data.ExtraInfo, tc.data.Age)
+			res, err := http_service.CreateUser(ctx, tc.data.Email, tc.data.Password, tc.data.Age, tc.data.Details)
 
 			// assert
 			assert.Equal(tc.res, res)
@@ -208,10 +213,9 @@ func TestUpdateUser(t *testing.T) {
 			data: entities.UserUpdate{
 				UserId: 1,
 				User: entities.User{
-					Email:     "new_email@domain.com",
-					Password:  "new_password",
-					Age:       23,
-					ExtraInfo: "new_extra_info",
+					Email:    "new_email@domain.com",
+					Password: "new_password",
+					Age:      23,
 				},
 			},
 			err: nil,
@@ -226,7 +230,7 @@ func TestUpdateUser(t *testing.T) {
 
 		// act
 		repository_mock.On("UpdateUser", ctx, tc.data).Return(tc.res, tc.err)
-		res, err := http_service.UpdateUser(ctx, tc.data.UserId, tc.data.Email, tc.data.Password, tc.data.ExtraInfo, tc.data.Age)
+		res, err := http_service.UpdateUser(ctx, tc.data.UserId, tc.data.Email, tc.data.Password, tc.data.Age)
 
 		// assert
 		assert.Equal(tc.res, res)
@@ -263,10 +267,9 @@ func TestGetUser(t *testing.T) {
 			test_name: "user found success",
 			data:      1,
 			res: entities.User{
-				Email:     "email@domain.com",
-				Password:  "password",
-				Age:       23,
-				ExtraInfo: "information",
+				Email:    "email@domain.com",
+				Password: "password",
+				Age:      23,
 			},
 			err: nil,
 		},

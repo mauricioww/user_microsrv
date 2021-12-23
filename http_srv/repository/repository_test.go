@@ -3,38 +3,24 @@ package repository_test
 import (
 	"context"
 	"errors"
-	"os"
 	"testing"
 
-	"github.com/go-kit/log"
 	"github.com/mauricioww/user_microsrv/http_srv/entities"
 	"github.com/mauricioww/user_microsrv/http_srv/repository"
+	"github.com/mauricioww/user_microsrv/user_details_srv/detailspb"
 	"github.com/mauricioww/user_microsrv/user_srv/userpb"
 	"github.com/stretchr/testify/assert"
-	"google.golang.org/grpc"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestCreateUser(t *testing.T) {
-	var logger log.Logger
-	{
-		logger = log.NewLogfmtLogger(os.Stderr)
-		logger = log.NewSyncLogger(logger)
-		logger = log.With(
-			logger,
-			"service",
-			"account",
-			"time",
-			log.DefaultTimestampUTC,
-			"caller",
-			log.DefaultCaller,
-		)
-	}
 
-	grpc_mock := new(repository.GrpcMock)
-	conn, _ := grpc.DialContext(context.Background(), "", grpc.WithInsecure(), grpc.WithContextDialer(repository.Dialer(grpc_mock)))
-	defer conn.Close()
+	user_mock := new(repository.GrpcUserMock)
+	details_mock := new(repository.GrpcDetailsMock)
+	conn1, conn2, http_repository := repository.InitRepoMock(user_mock, details_mock)
 
-	// http_repository := repository.NewHttpRepository(conn, logger)
+	defer conn1.Close()
+	defer conn2.Close()
 
 	test_cases := []struct {
 		test_name      string
@@ -45,81 +31,78 @@ func TestCreateUser(t *testing.T) {
 		{
 			test_name: "user created successfully",
 			user: entities.User{
-				Email:     "user@email.com",
-				Password:  "qwerty",
-				Age:       23,
-				ExtraInfo: "fav movie: fight club",
+				Email:    "user@email.com",
+				Password: "qwerty",
+				Age:      23,
+				Details:  repository.GenereateDetails(),
 			},
 			repository_res: 1,
-			err:            nil,
 		},
 		{
 			test_name: "no password error",
 			user: entities.User{
-				Email:     "user@email.com",
-				Age:       23,
-				ExtraInfo: "fav movie: fight club",
+				Email:   "user@email.com",
+				Age:     23,
+				Details: repository.GenereateDetails(),
 			},
 			repository_res: -1,
-			err:            errors.New("Email or Password empty!"),
 		},
 		{
 			test_name: "no email error",
 			user: entities.User{
-				Password:  "qwerty",
-				Age:       23,
-				ExtraInfo: "fav movie: fight club",
+				Password: "qwerty",
+				Age:      23,
+				Details:  repository.GenereateDetails(),
 			},
 			repository_res: -1,
-			err:            errors.New("Email or Password empty!"),
 		},
 	}
 
 	for _, tc := range test_cases {
 		t.Run(tc.test_name, func(t *testing.T) {
 			//  prepare
-			ctx := context.Background()
 			assert := assert.New(t)
+			ctx := context.Background()
 
-			grpc_req := &userpb.CreateUserRequest{
-				Email:                 tc.user.Email,
-				Password:              tc.user.Password,
-				Age:                   uint32(tc.user.Age),
-				AdditionalInformation: tc.user.ExtraInfo,
+			user_req := &userpb.CreateUserRequest{
+				Email:    tc.user.Email,
+				Password: tc.user.Password,
+				Age:      uint32(tc.user.Age),
 			}
 
-			grpc_res := &userpb.CreateUserResponse{Id: int32(tc.repository_res)}
-			grpc_mock.On("CreateUser", ctx, grpc_req).Return(grpc_res, tc.err)
+			details_req := &detailspb.SetUserDetailsRequest{
+				UserId:       uint32(tc.repository_res),
+				Country:      tc.user.Details.Country,
+				City:         tc.user.Details.City,
+				MobileNumber: tc.user.Details.MobileNumber,
+				Married:      tc.user.Details.Married,
+				Height:       tc.user.Details.Height,
+				Weigth:       tc.user.Details.Weigth,
+			}
+
+			user_res := &userpb.CreateUserResponse{Id: int32(tc.repository_res)}
+			details_res := &detailspb.SetUserDetailsResponse{Success: tc.repository_res == 1}
+
+			user_mock.On("CreateUser", mock.Anything, user_req).Return(user_res, tc.err)
+			details_mock.On("SetUserDetails", mock.Anything, details_req).Return(details_res, tc.err)
 
 			// act
-			res, err := grpc_mock.CreateUser(ctx, grpc_req)
+			res, err := http_repository.CreateUser(ctx, tc.user)
 
 			// assert
-			assert.Equal(int(res.GetId()), tc.repository_res)
+			assert.Equal(res, tc.repository_res)
 			assert.Equal(err, tc.err)
 		})
 	}
 }
 
 func TestAuthenticate(t *testing.T) {
-	var logger log.Logger
-	{
-		logger = log.NewLogfmtLogger(os.Stderr)
-		logger = log.NewSyncLogger(logger)
-		logger = log.With(
-			logger,
-			"service",
-			"account",
-			"time",
-			log.DefaultTimestampUTC,
-			"caller",
-			log.DefaultCaller,
-		)
-	}
+	user_mock := new(repository.GrpcUserMock)
+	details_mock := new(repository.GrpcDetailsMock)
+	conn1, conn2, _ := repository.InitRepoMock(user_mock, details_mock)
 
-	grpc_mock := new(repository.GrpcMock)
-	conn, _ := grpc.DialContext(context.Background(), "", grpc.WithInsecure(), grpc.WithContextDialer(repository.Dialer(grpc_mock)))
-	defer conn.Close()
+	defer conn1.Close()
+	defer conn2.Close()
 
 	test_cases := []struct {
 		test_name string
@@ -185,10 +168,10 @@ func TestAuthenticate(t *testing.T) {
 			}
 
 			grpc_res := &userpb.AuthenticateResponse{UserId: int32(tc.res)}
-			grpc_mock.On("Authenticate", ctx, grpc_req).Return(grpc_res, tc.err)
+			user_mock.On("Authenticate", ctx, grpc_req).Return(grpc_res, tc.err)
 
 			// act
-			res, err := grpc_mock.Authenticate(ctx, grpc_req)
+			res, err := user_mock.Authenticate(ctx, grpc_req)
 
 			// assert
 			assert.Equal(res.GetUserId(), int32(tc.res))
@@ -198,24 +181,12 @@ func TestAuthenticate(t *testing.T) {
 }
 
 func UpdateUser(t *testing.T) {
-	var logger log.Logger
-	{
-		logger = log.NewLogfmtLogger(os.Stderr)
-		logger = log.NewSyncLogger(logger)
-		logger = log.With(
-			logger,
-			"service",
-			"account",
-			"time",
-			log.DefaultTimestampUTC,
-			"caller",
-			log.DefaultCaller,
-		)
-	}
+	user_mock := new(repository.GrpcUserMock)
+	details_mock := new(repository.GrpcDetailsMock)
+	conn1, conn2, _ := repository.InitRepoMock(user_mock, details_mock)
 
-	grpc_mock := new(repository.GrpcMock)
-	conn, _ := grpc.DialContext(context.Background(), "", grpc.WithInsecure(), grpc.WithContextDialer(repository.Dialer(grpc_mock)))
-	defer conn.Close()
+	defer conn1.Close()
+	defer conn2.Close()
 
 	// http_repository := repository.NewHttpRepository(conn, logger)
 
@@ -257,22 +228,20 @@ func UpdateUser(t *testing.T) {
 			assert := assert.New(t)
 
 			grpc_req := &userpb.UpdateUserRequest{
-				Email:                 tc.prev_user.Email,
-				Password:              tc.prev_user.Password,
-				Age:                   uint32(tc.prev_user.Age),
-				AdditionalInformation: tc.prev_user.ExtraInfo,
+				Email:    tc.prev_user.Email,
+				Password: tc.prev_user.Password,
+				Age:      uint32(tc.prev_user.Age),
 			}
 
 			grpc_res := &userpb.UpdateUserResponse{
-				Email:                 tc.aft_user.Email,
-				Password:              tc.aft_user.Password,
-				Age:                   uint32(tc.aft_user.Age),
-				AdditionalInformation: tc.aft_user.ExtraInfo,
+				Email:    tc.aft_user.Email,
+				Password: tc.aft_user.Password,
+				Age:      uint32(tc.aft_user.Age),
 			}
-			grpc_mock.On("UpdateUser", ctx, grpc_req).Return(grpc_res, tc.err)
+			user_mock.On("UpdateUser", ctx, grpc_req).Return(grpc_res, tc.err)
 
 			// act
-			res, err := grpc_mock.UpdateUser(ctx, grpc_req)
+			res, err := user_mock.UpdateUser(ctx, grpc_req)
 
 			// assert
 			assert.Equal(res, grpc_res)
@@ -282,24 +251,12 @@ func UpdateUser(t *testing.T) {
 }
 
 func TestGetUser(t *testing.T) {
-	var logger log.Logger
-	{
-		logger = log.NewLogfmtLogger(os.Stderr)
-		logger = log.NewSyncLogger(logger)
-		logger = log.With(
-			logger,
-			"service",
-			"account",
-			"time",
-			log.DefaultTimestampUTC,
-			"caller",
-			log.DefaultCaller,
-		)
-	}
+	user_mock := new(repository.GrpcUserMock)
+	details_mock := new(repository.GrpcDetailsMock)
+	conn1, conn2, _ := repository.InitRepoMock(user_mock, details_mock)
 
-	grpc_mock := new(repository.GrpcMock)
-	conn, _ := grpc.DialContext(context.Background(), "", grpc.WithInsecure(), grpc.WithContextDialer(repository.Dialer(grpc_mock)))
-	defer conn.Close()
+	defer conn1.Close()
+	defer conn2.Close()
 
 	test_cases := []struct {
 		test_name string
@@ -311,10 +268,9 @@ func TestGetUser(t *testing.T) {
 			test_name: "user found",
 			data:      1,
 			res: entities.User{
-				Email:     "email@domain.com",
-				Password:  "password",
-				Age:       10,
-				ExtraInfo: "extra_info",
+				Email:    "email@domain.com",
+				Password: "password",
+				Age:      10,
 			},
 			err: nil,
 		},
@@ -338,15 +294,14 @@ func TestGetUser(t *testing.T) {
 			}
 
 			grpc_res := &userpb.GetUserResponse{
-				Email:                 tc.res.Email,
-				Password:              tc.res.Password,
-				Age:                   uint32(tc.res.Age),
-				AdditionalInformation: tc.res.ExtraInfo,
+				Email:    tc.res.Email,
+				Password: tc.res.Password,
+				Age:      uint32(tc.res.Age),
 			}
-			grpc_mock.On("GetUser", ctx, grpc_req).Return(grpc_res, tc.err)
+			user_mock.On("GetUser", ctx, grpc_req).Return(grpc_res, tc.err)
 
 			// act
-			res, err := grpc_mock.GetUser(ctx, grpc_req)
+			res, err := user_mock.GetUser(ctx, grpc_req)
 
 			// assert
 			assert.Equal(res, grpc_res)
@@ -356,24 +311,12 @@ func TestGetUser(t *testing.T) {
 }
 
 func TestDeleteUser(t *testing.T) {
-	var logger log.Logger
-	{
-		logger = log.NewLogfmtLogger(os.Stderr)
-		logger = log.NewSyncLogger(logger)
-		logger = log.With(
-			logger,
-			"service",
-			"account",
-			"time",
-			log.DefaultTimestampUTC,
-			"caller",
-			log.DefaultCaller,
-		)
-	}
+	user_mock := new(repository.GrpcUserMock)
+	details_mock := new(repository.GrpcDetailsMock)
+	conn1, conn2, _ := repository.InitRepoMock(user_mock, details_mock)
 
-	grpc_mock := new(repository.GrpcMock)
-	conn, _ := grpc.DialContext(context.Background(), "", grpc.WithInsecure(), grpc.WithContextDialer(repository.Dialer(grpc_mock)))
-	defer conn.Close()
+	defer conn1.Close()
+	defer conn2.Close()
 
 	// http_repository := repository.NewHttpRepository(conn, logger)
 
@@ -408,10 +351,10 @@ func TestDeleteUser(t *testing.T) {
 
 			grpc_res := &userpb.DeleteUserResponse{Success: tc.res}
 
-			grpc_mock.On("DeleteUser", ctx, grpc_req).Return(grpc_res, tc.err)
+			user_mock.On("DeleteUser", ctx, grpc_req).Return(grpc_res, tc.err)
 
 			// act
-			res, err := grpc_mock.DeleteUser(ctx, grpc_req)
+			res, err := user_mock.DeleteUser(ctx, grpc_req)
 
 			// assert
 			assert.Equal(res, grpc_res)
