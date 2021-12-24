@@ -60,10 +60,9 @@ func decodeCreateUserRequest(_ context.Context, request interface{}) (interface{
 	}
 
 	req := CreateUserRequest{
-		Email:     create_pb.GetEmail(),
-		Password:  create_pb.GetPassword(),
-		Age:       int(create_pb.GetAge()),
-		ExtraInfo: create_pb.GetAdditionalInformation(),
+		Email:    create_pb.GetEmail(),
+		Password: create_pb.GetPassword(),
+		Age:      int(create_pb.GetAge()),
 	}
 
 	return req, nil
@@ -103,11 +102,10 @@ func decodeUpdateUserRequest(_ context.Context, request interface{}) (interface{
 	}
 
 	req := UpdateUserRequest{
-		Id:        int(update_pb.GetId()),
-		Email:     update_pb.GetEmail(),
-		Password:  update_pb.GetPassword(),
-		Age:       int(update_pb.GetAge()),
-		ExtraInfo: update_pb.GetAdditionalInformation(),
+		Id:       int(update_pb.GetId()),
+		Email:    update_pb.GetEmail(),
+		Password: update_pb.GetPassword(),
+		Age:      int(update_pb.GetAge()),
 	}
 
 	return req, nil
@@ -137,10 +135,9 @@ func encodeGetUserResponse(_ context.Context, response interface{}) (interface{}
 	res := response.(GetUserResponse)
 
 	return &userpb.GetUserResponse{
-		Email:                 res.Email,
-		Password:              res.Password,
-		Age:                   uint32(res.Age),
-		AdditionalInformation: res.ExtraInfo,
+		Email:    res.Email,
+		Password: res.Password,
+		Age:      uint32(res.Age),
 	}, nil
 }
 

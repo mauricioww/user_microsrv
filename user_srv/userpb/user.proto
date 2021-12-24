@@ -6,7 +6,6 @@ message CreateUserRequest {
     string email = 1;
     string password = 2;
     uint32 age = 3;
-    string additional_information = 4;
 }
 
 message CreateUserResponse {
@@ -27,7 +26,6 @@ message UpdateUserRequest {
     string email = 2;
     string password = 3;
     uint32 age = 4;
-    string additional_information = 5;
 }
 
 message UpdateUserResponse {
@@ -42,7 +40,6 @@ message GetUserResponse {
     string email = 1;
     string password = 2;
     uint32 age = 3;
-    string additional_information = 4;
 }
 
 message DeleteUserRequest {

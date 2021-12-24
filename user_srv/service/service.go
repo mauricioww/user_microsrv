@@ -12,9 +12,9 @@ import (
 )
 
 type GrpcUserService interface {
-	CreateUser(ctx context.Context, email string, pwd string, extra_info string, age int) (int, error)
+	CreateUser(ctx context.Context, email string, pwd string, age int) (int, error)
 	Authenticate(ctx context.Context, email string, pwd string) (int, error)
-	UpdateUser(ctx context.Context, id int, email string, pwd string, extra_info string, age int) (bool, error)
+	UpdateUser(ctx context.Context, id int, email string, pwd string, age int) (bool, error)
 	GetUser(ctx context.Context, id int) (entities.User, error)
 	DeleteUser(ctx context.Context, id int) (bool, error)
 }
@@ -31,15 +31,14 @@ func NewGrpcUserService(r repository.UserSrvRepository, l log.Logger) GrpcUserSe
 	}
 }
 
-func (g *grpcUserService) CreateUser(ctx context.Context, email string, pwd string, extra_info string, age int) (int, error) {
+func (g *grpcUserService) CreateUser(ctx context.Context, email string, pwd string, age int) (int, error) {
 	logger := log.With(g.logger, "method", "create_user")
 	ciphered_pwd := helpers.Cipher(pwd)
 
 	user := entities.User{
-		Email:     email,
-		Password:  ciphered_pwd,
-		Age:       age,
-		ExtraInfo: extra_info,
+		Email:    email,
+		Password: ciphered_pwd,
+		Age:      age,
 	}
 
 	res, err := g.repository.CreateUser(ctx, user)
@@ -78,7 +77,7 @@ func (g *grpcUserService) Authenticate(ctx context.Context, email string, pwd st
 	return auth.Id, nil
 }
 
-func (g *grpcUserService) UpdateUser(ctx context.Context, id int, email string, pwd string, extra_info string, age int) (bool, error) {
+func (g *grpcUserService) UpdateUser(ctx context.Context, id int, email string, pwd string, age int) (bool, error) {
 	logger := log.With(g.logger, "method", "update_user")
 	ciphered_pwd := helpers.Cipher(pwd)
 	var res bool

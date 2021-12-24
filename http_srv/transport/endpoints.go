@@ -45,7 +45,7 @@ func makeUpdateUserEndpoint(http_srv service.HttpService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(UpdateUserRequest)
 		res, err := http_srv.UpdateUser(ctx, req.UserId, req.Email, req.Password, req.Age, req.Details)
-		return UpdateUserResponse{Email: res.Email, Password: res.Password, Age: res.Age, Details: res.Details}, err
+		return UpdateUserResponse{Success: res}, err
 	}
 }
 

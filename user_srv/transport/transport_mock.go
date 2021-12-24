@@ -11,8 +11,8 @@ type GrpcUserSrvMock struct {
 	mock.Mock
 }
 
-func (s *GrpcUserSrvMock) CreateUser(ctx context.Context, email string, pwd string, extra_info string, age int) (int, error) {
-	args := s.Called(ctx, email, pwd, extra_info, age)
+func (s *GrpcUserSrvMock) CreateUser(ctx context.Context, email string, pwd string, age int) (int, error) {
+	args := s.Called(ctx, email, pwd, age)
 
 	return args.Int(0), args.Error(1)
 }
@@ -23,8 +23,8 @@ func (s *GrpcUserSrvMock) Authenticate(ctx context.Context, email string, pwd st
 	return args.Int(0), args.Error(1)
 }
 
-func (s *GrpcUserSrvMock) UpdateUser(ctx context.Context, id int, email string, pwd string, extra_info string, age int) (bool, error) {
-	args := s.Called(ctx, id, email, pwd, extra_info, age)
+func (s *GrpcUserSrvMock) UpdateUser(ctx context.Context, id int, email string, pwd string, age int) (bool, error) {
+	args := s.Called(ctx, id, email, pwd, age)
 
 	return args.Bool(0), args.Error(1)
 }
