@@ -44,10 +44,9 @@ func TestCreateUser(t *testing.T) {
 		{
 			test_name: "create user successfully",
 			data: entities.User{
-				Email:     "success@email.com",
-				Password:  "qwerty",
-				Age:       23,
-				ExtraInfo: "fav movie: fight club",
+				Email:    "success@email.com",
+				Password: "qwerty",
+				Age:      23,
 			},
 			res: 1,
 			err: nil,
@@ -62,7 +61,7 @@ func TestCreateUser(t *testing.T) {
 
 			// act
 			user_repo_mock.On("CreateUser", ctx, mock.AnythingOfType("entities.User")).Return(tc.res, tc.err)
-			res, err := grpc_user_srv.CreateUser(ctx, tc.data.Email, tc.data.Password, tc.data.ExtraInfo, tc.data.Age)
+			res, err := grpc_user_srv.CreateUser(ctx, tc.data.Email, tc.data.Password, tc.data.Age)
 
 			// assert
 			assert.Equal(tc.res, res)
@@ -188,8 +187,7 @@ func TestUpdateUser(t *testing.T) {
 				},
 			},
 			repo_res: entities.User{
-				Email:    "new_email@domain.com",
-				Password: "new_password",
+				Email: "new_email@domain.com",
 			},
 			res: true,
 			err: nil,
@@ -201,10 +199,11 @@ func TestUpdateUser(t *testing.T) {
 			// prepare
 			ctx := context.Background()
 			assert := assert.New(t)
+			tc.repo_res.Password = helpers.Cipher(tc.data.Password)
 
 			// act
 			user_repo_mock.On("UpdateUser", ctx, mock.Anything).Return(tc.repo_res, tc.err)
-			res, err := grpc_user_srv.UpdateUser(ctx, tc.data.UserId, tc.data.Email, tc.data.Password, tc.data.ExtraInfo, tc.data.Age)
+			res, err := grpc_user_srv.UpdateUser(ctx, tc.data.UserId, tc.data.Email, tc.data.Password, tc.data.Age)
 
 			// assert
 			assert.Equal(tc.err, err)
@@ -244,10 +243,9 @@ func TestGetUser(t *testing.T) {
 			test_name: "user found",
 			data:      0,
 			res: entities.User{
-				Email:     "user@email.com",
-				Password:  "password",
-				Age:       20,
-				ExtraInfo: "fav color blue",
+				Email:    "user@email.com",
+				Password: "password",
+				Age:      20,
 			},
 			err: nil,
 		},

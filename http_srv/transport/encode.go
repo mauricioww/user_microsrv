@@ -16,10 +16,7 @@ type (
 	}
 
 	UpdateUserResponse struct {
-		Email            string `json:"email"`
-		Password         string `json:"password"`
-		Age              int    `json:"age"`
-		entities.Details `json:"information"`
+		Success bool `json:"success"`
 	}
 
 	GetUserResponse struct {

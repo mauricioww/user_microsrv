@@ -11,8 +11,8 @@ import (
 
 const (
 	create_user_sql = `
-		INSERT INTO usr_service(email, password, age, extra_info)
-			VALUES (?, ?, ? , ?)
+		INSERT INTO usr_service(email, password, age)
+			VALUES (?, ?, ?)
 	`
 
 	authenticate_sql = `
@@ -20,12 +20,12 @@ const (
 	`
 
 	update_user_sql = `
-		UPDATE usr_service SET email = ?, password = ?, age = ?, extra_info = ?
+		UPDATE usr_service SET email = ?, password = ?, age = ?
 			WHERE id = ? 
 	`
 
 	get_user_by_id = `
-		SELECT u.email, u.password, u.age, u.extra_info
+		SELECT u.email, u.password, u.age
 			FROM usr_service u WHERE u.id = ?
 	`
 
@@ -55,7 +55,7 @@ func NewUserSrvRepository(mysql_db *sql.DB, l log.Logger) UserSrvRepository {
 }
 
 func (r userSrvRepository) CreateUser(ctx context.Context, user entities.User) (int, error) {
-	id, err := r.db.ExecContext(ctx, create_user_sql, user.Email, user.Password, user.Age, user.ExtraInfo)
+	id, err := r.db.ExecContext(ctx, create_user_sql, user.Email, user.Password, user.Age)
 
 	if err != nil {
 		return -1, errors.New("Internal Error")
@@ -81,21 +81,21 @@ func (r userSrvRepository) Authenticate(ctx context.Context, session *entities.S
 }
 
 func (r userSrvRepository) UpdateUser(ctx context.Context, update entities.Update) (entities.User, error) {
-	_, err := r.db.ExecContext(ctx, update_user_sql, update.Email, update.Password, update.Age, update.ExtraInfo, update.UserId)
+	_, err := r.db.ExecContext(ctx, update_user_sql, update.Email, update.Password, update.Age, update.UserId)
 
 	if err != nil {
 		return entities.User{}, errors.New("Internal Error")
 	}
 
 	u := entities.User{}
-	_ = r.db.QueryRow(get_user_by_id, update.UserId).Scan(&u.Email, &u.Password, &u.Age, &u.ExtraInfo)
+	_ = r.db.QueryRow(get_user_by_id, update.UserId).Scan(&u.Email, &u.Password, &u.Age)
 
 	return u, nil
 }
 
 func (r userSrvRepository) GetUser(ctx context.Context, id int) (entities.User, error) {
 	u := entities.User{}
-	err := r.db.QueryRow(get_user_by_id, id).Scan(&u.Email, &u.Password, &u.Age, &u.ExtraInfo)
+	err := r.db.QueryRow(get_user_by_id, id).Scan(&u.Email, &u.Password, &u.Age)
 
 	if err == sql.ErrNoRows {
 		return entities.User{}, errors.New("User not found")

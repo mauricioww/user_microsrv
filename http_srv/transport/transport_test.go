@@ -16,11 +16,11 @@ func TestCreateUser(t *testing.T) {
 	endpoints := transport.MakeHttpEndpoints(http_srv_mock)
 
 	test_cases := []struct {
-		test_name  string
-		res_string int
-		data       transport.CreateUserRequest
-		res        transport.CreateUserResponse
-		err        error
+		test_name    string
+		endpoint_res int
+		data         transport.CreateUserRequest
+		res          transport.CreateUserResponse
+		err          error
 	}{
 		{
 			test_name: "user created successfully",
@@ -30,7 +30,7 @@ func TestCreateUser(t *testing.T) {
 				Age:      23,
 				Details:  transport.GenereateDetails(),
 			},
-			res_string: 1,
+			endpoint_res: 1,
 			res: transport.CreateUserResponse{
 				Id:       1,
 				Email:    "success@email.com",
@@ -46,7 +46,7 @@ func TestCreateUser(t *testing.T) {
 				Email: "success@email.com",
 				Age:   23,
 			},
-			res_string: -1,
+			endpoint_res: -1,
 			res: transport.CreateUserResponse{
 				Id:    -1,
 				Email: "success@email.com",
@@ -60,7 +60,7 @@ func TestCreateUser(t *testing.T) {
 				Password: "qwerty",
 				Age:      23,
 			},
-			res_string: -1,
+			endpoint_res: -1,
 			res: transport.CreateUserResponse{
 				Id:       -1,
 				Password: "qwerty",
@@ -77,7 +77,7 @@ func TestCreateUser(t *testing.T) {
 			ctx := context.Background()
 
 			http_srv_mock.On("CreateUser", ctx, tc.data.Email, tc.data.Password, tc.data.Age, tc.data.Details).
-				Return(tc.res_string, tc.err)
+				Return(tc.endpoint_res, tc.err)
 
 			// act
 			res, err := endpoints.CreateUser(ctx, tc.data)
@@ -171,11 +171,11 @@ func TestUpdateUser(t *testing.T) {
 	endpoints := transport.MakeHttpEndpoints(http_srv_mock)
 
 	test_cases := []struct {
-		test_name string
-		data      transport.UpdateUserRequest
-		res       transport.UpdateUserResponse
-		user_res  entities.User
-		err       error
+		test_name    string
+		endpoint_res bool
+		data         transport.UpdateUserRequest
+		res          transport.UpdateUserResponse
+		err          error
 	}{
 		{
 			test_name: "update user success",
@@ -184,17 +184,10 @@ func TestUpdateUser(t *testing.T) {
 				Email:    "new_email@domain.com",
 				Password: "new_password",
 				Age:      23,
+				Details:  transport.GenereateDetails(),
 			},
-			user_res: entities.User{
-				Email:    "new_email@domain.com",
-				Password: "new_password",
-				Age:      23,
-			},
-			res: transport.UpdateUserResponse{
-				Email:    "new_email@domain.com",
-				Password: "new_password",
-				Age:      23,
-			},
+			endpoint_res: true,
+			err:          nil,
 		},
 	}
 
@@ -202,8 +195,9 @@ func TestUpdateUser(t *testing.T) {
 		// prepare
 		ctx := context.Background()
 		assert := assert.New(t)
+		tc.res = transport.UpdateUserResponse{Success: tc.endpoint_res}
 
-		http_srv_mock.On("UpdateUser", ctx, tc.data.UserId, tc.data.Email, tc.data.Password, tc.data.Age, tc.data.Details).Return(tc.user_res, tc.err)
+		http_srv_mock.On("UpdateUser", ctx, tc.data.UserId, tc.data.Email, tc.data.Password, tc.data.Age, tc.data.Details).Return(tc.endpoint_res, tc.err)
 
 		// act
 		res, err := endpoints.UpdateUser(ctx, tc.data)

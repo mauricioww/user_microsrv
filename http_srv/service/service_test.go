@@ -198,9 +198,8 @@ func TestUpdateUser(t *testing.T) {
 	test_cases := []struct {
 		test_name string
 		data      entities.UserUpdate
-		repo_res  bool
+		res       bool
 		err       error
-		res       entities.User
 	}{
 		{
 			test_name: "update user success",
@@ -213,8 +212,8 @@ func TestUpdateUser(t *testing.T) {
 					Details:  service.GenenerateDetails(),
 				},
 			},
-			repo_res: true,
-			err:      nil,
+			res: true,
+			err: nil,
 		},
 	}
 
@@ -222,12 +221,9 @@ func TestUpdateUser(t *testing.T) {
 		// prepare
 		ctx := context.Background()
 		assert := assert.New(t)
-		if tc.repo_res {
-			tc.res = tc.data.User
-		}
 
 		// act
-		repository_mock.On("UpdateUser", ctx, tc.data).Return(tc.repo_res, tc.err)
+		repository_mock.On("UpdateUser", ctx, tc.data).Return(tc.res, tc.err)
 		res, err := http_service.UpdateUser(ctx, tc.data.UserId, tc.data.Email, tc.data.Password, tc.data.Age, tc.data.Details)
 
 		// assert

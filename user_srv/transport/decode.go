@@ -2,10 +2,9 @@ package transport
 
 type (
 	CreateUserRequest struct {
-		Email     string
-		Password  string
-		Age       int
-		ExtraInfo string
+		Email    string
+		Password string
+		Age      int
 	}
 
 	AuthenticateRequest struct {
@@ -14,11 +13,10 @@ type (
 	}
 
 	UpdateUserRequest struct {
-		Id        int
-		Email     string
-		Password  string
-		Age       int
-		ExtraInfo string
+		Id       int
+		Email    string
+		Password string
+		Age      int
 	}
 
 	GetUserRequest struct {

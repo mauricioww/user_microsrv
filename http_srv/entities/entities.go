@@ -6,8 +6,8 @@ type (
 		City         string  `json:"city"`
 		MobileNumber string  `json:"mobile_number"`
 		Married      bool    `json:"married"`
-		Height       float32 `json:"height"`
-		Weigth       float32 `json:"weigth"`
+		Height       float32 `json:"height_m"`
+		Weigth       float32 `json:"weigth_kg"`
 	}
 
 	User struct {
