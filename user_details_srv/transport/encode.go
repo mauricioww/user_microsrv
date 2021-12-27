@@ -13,4 +13,8 @@ type (
 		Height       float32
 		Weight       float32
 	}
+
+	DeleteUserDetailsResponse struct {
+		Success bool
+	}
 )

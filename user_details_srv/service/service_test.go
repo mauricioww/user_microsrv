@@ -137,3 +137,60 @@ func TestGetUserDetails(t *testing.T) {
 		})
 	}
 }
+
+func TestDeleteUserDetails(t *testing.T) {
+	var logger log.Logger
+	{
+		logger = log.NewLogfmtLogger(os.Stderr)
+		logger = log.NewSyncLogger(logger)
+		logger = log.With(
+			logger,
+			"service",
+			"user_details",
+			"time",
+			log.DefaultTimestampUTC,
+			"caller",
+			log.DefaultCaller,
+		)
+	}
+
+	var grpc_user_details_srv service.GrpcUserDetailsService
+
+	user_details_repo_mock := new(service.UserDetailsRepositoryMock)
+	grpc_user_details_srv = service.NewGrpcUserDetailsService(user_details_repo_mock, logger)
+
+	test_cases := []struct {
+		test_name string
+		data      int
+		res       bool
+		err       error
+	}{
+		{
+			test_name: "delete user details success",
+			data:      0,
+			res:       true,
+			err:       nil,
+		},
+		{
+			test_name: "delete user details which does not exist error",
+			data:      1,
+			err:       errors.New("User does not exists"),
+		},
+	}
+
+	for _, tc := range test_cases {
+		t.Run(tc.test_name, func(t *testing.T) {
+			// prepare
+			ctx := context.Background()
+			assert := assert.New(t)
+
+			// act
+			user_details_repo_mock.On("DeleteUserDetails", ctx, tc.data).Return(tc.res, tc.err)
+			res, err := grpc_user_details_srv.DeleteUserDetails(ctx, tc.data)
+
+			// assert
+			assert.Equal(tc.res, res)
+			assert.Equal(tc.err, err)
+		})
+	}
+}
