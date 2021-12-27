@@ -77,7 +77,7 @@ func TestCreateUser(t *testing.T) {
 				MobileNumber: tc.user.MobileNumber,
 				Married:      tc.user.Married,
 				Height:       tc.user.Height,
-				Weigth:       tc.user.Weigth,
+				Weight:       tc.user.Weight,
 			}
 
 			user_res := &userpb.CreateUserResponse{Id: int32(tc.repository_res)}
@@ -229,7 +229,7 @@ func UpdateUser(t *testing.T) {
 				MobileNumber: tc.data.MobileNumber,
 				Married:      tc.data.Married,
 				Height:       tc.data.Height,
-				Weigth:       tc.data.Weigth,
+				Weight:       tc.data.Weight,
 			}
 
 			user_res := &userpb.UpdateUserResponse{Success: tc.res}

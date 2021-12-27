@@ -7,7 +7,7 @@ type (
 		MobileNumber string  `json:"mobile_number"`
 		Married      bool    `json:"married"`
 		Height       float32 `json:"height_m"`
-		Weigth       float32 `json:"weigth_kg"`
+		Weight       float32 `json:"weight_kg"`
 	}
 
 	User struct {

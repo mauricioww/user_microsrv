@@ -2,13 +2,15 @@ package transport_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 
+	"github.com/mauricioww/user_microsrv/user_details_srv/entities"
 	"github.com/mauricioww/user_microsrv/user_details_srv/transport"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCreateUser(t *testing.T) {
+func TestSetUserDetails(t *testing.T) {
 	grpc_user_srv_mock := new(transport.GrpcUserDetailsSrvMock)
 
 	endpoints := transport.MakeGrpcUserDetailsServiceEndpoints(grpc_user_srv_mock)
@@ -61,6 +63,61 @@ func TestCreateUser(t *testing.T) {
 				tc.data.MobileNumber, tc.data.Married, tc.data.Height, tc.data.Weigth).Return(tc.srv_res, tc.err)
 
 			res, err := endpoints.SetUserDetails(ctx, tc.data)
+
+			// assert
+			assert.Equal(tc.res, res)
+			assert.Equal(tc.err, err)
+		})
+	}
+}
+
+func TestGetUserDetails(t *testing.T) {
+	grpc_user_srv_mock := new(transport.GrpcUserDetailsSrvMock)
+
+	endpoints := transport.MakeGrpcUserDetailsServiceEndpoints(grpc_user_srv_mock)
+
+	test_cases := []struct {
+		test_name string
+		data      transport.GetUserDetailsRequest
+		res       transport.GetUserDetailsResponse
+		srv_res   entities.UserDetails
+		err       error
+	}{
+		{
+			test_name: "get user details success",
+			data: transport.GetUserDetailsRequest{
+				UserId: 0,
+			},
+			srv_res: entities.UserDetails{
+				Country:      "Mexico",
+				City:         "CDMX",
+				MobileNumber: "11223344",
+				Married:      false,
+				Height:       1.75,
+				Weight:       76.0,
+			},
+			err: nil,
+		},
+		{
+			test_name: "get user details which does not exist error",
+			data: transport.GetUserDetailsRequest{
+				UserId: 1,
+			},
+			err: errors.New("User does not exists"),
+		},
+	}
+	for _, tc := range test_cases {
+		t.Run(tc.test_name, func(t *testing.T) {
+			// prepare
+			assert := assert.New(t)
+			ctx := context.Background()
+			tc.res = transport.GetUserDetailsResponse{Country: tc.srv_res.Country, City: tc.srv_res.City, MobileNumber: tc.srv_res.MobileNumber,
+				Married: tc.srv_res.Married, Height: tc.srv_res.Height, Weight: tc.srv_res.Weight}
+
+			// act
+			grpc_user_srv_mock.On("GetUserDetails", ctx, tc.data.UserId).Return(tc.srv_res, tc.err)
+
+			res, err := endpoints.GetUserDetails(ctx, tc.data)
 
 			// assert
 			assert.Equal(tc.res, res)

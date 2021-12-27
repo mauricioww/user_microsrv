@@ -10,4 +10,8 @@ type (
 		Height       float32
 		Weigth       float32
 	}
+
+	GetUserDetailsRequest struct {
+		UserId int
+	}
 )

@@ -95,7 +95,6 @@ func authMiddleware(next http.Handler) http.Handler {
 func decodeCreateUserRequest(ctx context.Context, r *http.Request) (interface{}, error) {
 	var request CreateUserRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
-	fmt.Printf("%+v", request)
 	if err != nil {
 		return nil, err
 	}

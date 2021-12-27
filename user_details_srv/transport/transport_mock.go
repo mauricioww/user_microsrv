@@ -3,6 +3,7 @@ package transport
 import (
 	"context"
 
+	"github.com/mauricioww/user_microsrv/user_details_srv/entities"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -14,4 +15,10 @@ func (g *GrpcUserDetailsSrvMock) SetUserDetails(ctx context.Context, user_id int
 	args := g.Called(ctx, user_id, country, city, mobile_number, married, height, weigth)
 
 	return args.Bool(0), args.Error(1)
+}
+
+func (g *GrpcUserDetailsSrvMock) GetUserDetails(ctx context.Context, user_id int) (entities.UserDetails, error) {
+	args := g.Called(ctx, user_id)
+
+	return args.Get(0).(entities.UserDetails), args.Error(1)
 }

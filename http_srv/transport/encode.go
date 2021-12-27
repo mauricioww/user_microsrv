@@ -20,10 +20,11 @@ type (
 	}
 
 	GetUserResponse struct {
-		Id       int    `json:"user_id"`
-		Email    string `json:"email"`
-		Password string `json:"password"`
-		Age      int    `json:"age"`
+		Id               int    `json:"user_id"`
+		Email            string `json:"email"`
+		Password         string `json:"password"`
+		Age              int    `json:"age"`
+		entities.Details `json:"information"`
 	}
 
 	DeleteUserResponse struct {
