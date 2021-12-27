@@ -10,12 +10,12 @@ import (
 
 func BuildUpdateBson(d entities.UserDetails) bson.D {
 	return bson.D{
-		{"$set", extracFields(d)},
+		{"$set", injectFields(d)},
 	}
 }
 
 func BuildInsertBson(d entities.UserDetails) bson.M {
-	b := extracFields(d)
+	b := injectFields(d)
 	b["_id"] = d.UserId
 	return b
 }
@@ -26,13 +26,13 @@ func NoExists(coll *mongo.Collection, ctx context.Context, id int) bool {
 	return err == mongo.ErrNoDocuments
 }
 
-func extracFields(d entities.UserDetails) bson.M {
+func injectFields(d entities.UserDetails) bson.M {
 	return bson.M{
 		"country":       d.Country,
 		"city":          d.City,
 		"mobile_number": d.MobileNumber,
 		"married":       d.Married,
 		"height":        d.Height,
-		"weigth":        d.Weigth,
+		"weight":        d.Weight,
 	}
 }

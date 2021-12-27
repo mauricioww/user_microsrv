@@ -31,7 +31,7 @@ func NewHttpRepository(conn1 *grpc.ClientConn, conn2 *grpc.ClientConn, logger lo
 	return httpRepository{
 		user_client:    userpb.NewUserServiceClient(conn1),
 		details_client: detailspb.NewUserDetailsServiceClient(conn2),
-		logger:         log.With(logger, "http_repository", "proxy?"),
+		logger:         log.With(logger, "http_service", "repository"),
 	}
 }
 
@@ -50,17 +50,17 @@ func (hr httpRepository) CreateUser(ctx context.Context, user entities.User) (in
 		return -1, err
 	}
 
-	detailspb_req := detailspb.SetUserDetailsRequest{
+	details_req := detailspb.SetUserDetailsRequest{
 		UserId:       uint32(user_res.GetId()),
 		Country:      user.Details.Country,
 		City:         user.Details.City,
 		MobileNumber: user.Details.MobileNumber,
 		Married:      user.Details.Married,
 		Height:       user.Details.Height,
-		Weigth:       user.Details.Weigth,
+		Weight:       user.Details.Weight,
 	}
 
-	details_res, err := hr.details_client.SetUserDetails(ctx, &detailspb_req)
+	details_res, err := hr.details_client.SetUserDetails(ctx, &details_req)
 	if err != nil {
 		level.Error(logger).Log("err", err)
 		return -1, err
@@ -111,7 +111,7 @@ func (hr httpRepository) UpdateUser(ctx context.Context, user entities.UserUpdat
 		MobileNumber: user.Details.MobileNumber,
 		Married:      user.Details.Married,
 		Height:       user.Details.Height,
-		Weigth:       user.Details.Weigth,
+		Weight:       user.Details.Weight,
 	}
 
 	user_res, err := hr.user_client.UpdateUser(ctx, &user_req)
@@ -134,23 +134,40 @@ func (hr httpRepository) UpdateUser(ctx context.Context, user entities.UserUpdat
 }
 
 func (hr httpRepository) GetUser(ctx context.Context, id int) (entities.User, error) {
-	logger := log.With(hr.logger, "method", "update_user")
+	logger := log.With(hr.logger, "method", "get_user")
 
-	grpc_req := userpb.GetUserRequest{
+	user_req := userpb.GetUserRequest{
 		Id: uint32(id),
 	}
+	details_req := detailspb.GetUserDetailsRequest{
+		UserId: uint32(id),
+	}
 
-	grpc_res, err := hr.user_client.GetUser(ctx, &grpc_req)
+	user_res, err := hr.user_client.GetUser(ctx, &user_req)
 
 	if err != nil {
 		level.Error(logger).Log("err", err)
 		return entities.User{}, err
 	}
 
+	details_res, err := hr.details_client.GetUserDetails(ctx, &details_req)
+	if err != nil {
+		level.Error(logger).Log("err", err)
+		return entities.User{}, err
+	}
+
 	u := entities.User{
-		Email:    grpc_res.GetEmail(),
-		Password: grpc_res.GetPassword(),
-		Age:      int(grpc_res.GetAge()),
+		Email:    user_res.GetEmail(),
+		Password: user_res.GetPassword(),
+		Age:      int(user_res.GetAge()),
+		Details: entities.Details{
+			Country:      details_res.GetCountry(),
+			City:         details_res.GetCity(),
+			MobileNumber: details_res.GetMobileNumber(),
+			Married:      details_res.GetMarried(),
+			Height:       details_res.GetHeight(),
+			Weight:       details_res.GetWeight(),
+		},
 	}
 
 	return u, nil

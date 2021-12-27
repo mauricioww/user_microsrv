@@ -48,6 +48,6 @@ func GenenerateDetails() entities.Details {
 		MobileNumber: "11223344",
 		Married:      false,
 		Height:       1.75,
-		Weigth:       76.0,
+		Weight:       76.0,
 	}
 }

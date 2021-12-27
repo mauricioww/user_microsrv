@@ -19,6 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserDetailsServiceClient interface {
 	SetUserDetails(ctx context.Context, in *SetUserDetailsRequest, opts ...grpc.CallOption) (*SetUserDetailsResponse, error)
+	GetUserDetails(ctx context.Context, in *GetUserDetailsRequest, opts ...grpc.CallOption) (*GetUserDetailsResponse, error)
 }
 
 type userDetailsServiceClient struct {
@@ -38,11 +39,21 @@ func (c *userDetailsServiceClient) SetUserDetails(ctx context.Context, in *SetUs
 	return out, nil
 }
 
+func (c *userDetailsServiceClient) GetUserDetails(ctx context.Context, in *GetUserDetailsRequest, opts ...grpc.CallOption) (*GetUserDetailsResponse, error) {
+	out := new(GetUserDetailsResponse)
+	err := c.cc.Invoke(ctx, "/UserDetailsService/GetUserDetails", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserDetailsServiceServer is the server API for UserDetailsService service.
 // All implementations must embed UnimplementedUserDetailsServiceServer
 // for forward compatibility
 type UserDetailsServiceServer interface {
 	SetUserDetails(context.Context, *SetUserDetailsRequest) (*SetUserDetailsResponse, error)
+	GetUserDetails(context.Context, *GetUserDetailsRequest) (*GetUserDetailsResponse, error)
 	mustEmbedUnimplementedUserDetailsServiceServer()
 }
 
@@ -52,6 +63,9 @@ type UnimplementedUserDetailsServiceServer struct {
 
 func (UnimplementedUserDetailsServiceServer) SetUserDetails(context.Context, *SetUserDetailsRequest) (*SetUserDetailsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetUserDetails not implemented")
+}
+func (UnimplementedUserDetailsServiceServer) GetUserDetails(context.Context, *GetUserDetailsRequest) (*GetUserDetailsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserDetails not implemented")
 }
 func (UnimplementedUserDetailsServiceServer) mustEmbedUnimplementedUserDetailsServiceServer() {}
 
@@ -84,6 +98,24 @@ func _UserDetailsService_SetUserDetails_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserDetailsService_GetUserDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserDetailsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserDetailsServiceServer).GetUserDetails(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/UserDetailsService/GetUserDetails",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserDetailsServiceServer).GetUserDetails(ctx, req.(*GetUserDetailsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserDetailsService_ServiceDesc is the grpc.ServiceDesc for UserDetailsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -94,6 +126,10 @@ var UserDetailsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetUserDetails",
 			Handler:    _UserDetailsService_SetUserDetails_Handler,
+		},
+		{
+			MethodName: "GetUserDetails",
+			Handler:    _UserDetailsService_GetUserDetails_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

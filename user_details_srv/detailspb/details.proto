@@ -9,13 +9,27 @@ message SetUserDetailsRequest {
     string mobile_number = 4;
     bool married = 5;
     float height = 6;
-    float weigth = 7;
+    float weight = 7;
 }
 
 message SetUserDetailsResponse {
     bool success = 1;
 }
 
+message GetUserDetailsRequest {
+    uint32 user_id = 1;
+}
+
+message GetUserDetailsResponse {
+    string country = 1;
+    string city = 2;
+    string mobile_number = 3;
+    bool married = 4;
+    float height = 5;
+    float weight = 6;
+}
+
 service UserDetailsService {
     rpc SetUserDetails(SetUserDetailsRequest) returns (SetUserDetailsResponse) {};
+    rpc GetUserDetails(GetUserDetailsRequest) returns (GetUserDetailsResponse) {};
 }

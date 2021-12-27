@@ -53,7 +53,7 @@ func makeGetUserEndpoint(http_srv service.HttpService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(GetUserRequest)
 		res, err := http_srv.GetUser(ctx, req.UserId)
-		return GetUserResponse{Id: req.UserId, Email: res.Email, Password: res.Password, Age: res.Age}, err
+		return GetUserResponse{Id: req.UserId, Email: res.Email, Password: res.Password, Age: res.Age, Details: res.Details}, err
 	}
 }
 

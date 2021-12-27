@@ -11,6 +11,7 @@ import (
 
 type GrpcUserDetailsService interface {
 	SetUserDetails(ctx context.Context, user_id int, country string, city string, mobile_number string, married bool, height float32, weigth float32) (bool, error)
+	GetUserDetails(ctx context.Context, user_id int) (entities.UserDetails, error)
 }
 
 type grpcUserDetailsService struct {
@@ -25,7 +26,7 @@ func NewGrpcUserDetailsService(r repository.UserDetailsRepository, l log.Logger)
 	}
 }
 
-func (g *grpcUserDetailsService) SetUserDetails(ctx context.Context, user_id int, country string, city string, mobile_number string, married bool, height float32, weigth float32) (bool, error) {
+func (g *grpcUserDetailsService) SetUserDetails(ctx context.Context, user_id int, country string, city string, mobile_number string, married bool, height float32, weight float32) (bool, error) {
 	logger := log.With(g.logger, "method", "set_user_details")
 
 	information := entities.UserDetails{
@@ -35,10 +36,23 @@ func (g *grpcUserDetailsService) SetUserDetails(ctx context.Context, user_id int
 		MobileNumber: mobile_number,
 		Married:      married,
 		Height:       height,
-		Weigth:       weigth,
+		Weight:       weight,
 	}
 
 	res, err := g.repository.SetUserDetails(ctx, information)
+
+	if err != nil {
+		level.Error(logger).Log("ERROR", err)
+	} else {
+		logger.Log("action", "success")
+	}
+
+	return res, err
+}
+
+func (g *grpcUserDetailsService) GetUserDetails(ctx context.Context, user_id int) (entities.UserDetails, error) {
+	logger := log.With(g.logger, "method", "get_user_details")
+	res, err := g.repository.GetUserDetails(ctx, user_id)
 
 	if err != nil {
 		level.Error(logger).Log("ERROR", err)

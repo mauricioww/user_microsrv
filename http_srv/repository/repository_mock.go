@@ -116,6 +116,12 @@ func (m *GrpcDetailsMock) SetUserDetails(ctx context.Context, req *detailspb.Set
 	return args.Get(0).(*detailspb.SetUserDetailsResponse), args.Error(1)
 }
 
+func (m *GrpcDetailsMock) GetUserDetails(ctx context.Context, req *detailspb.GetUserDetailsRequest) (*detailspb.GetUserDetailsResponse, error) {
+	args := m.Called(ctx, req)
+
+	return args.Get(0).(*detailspb.GetUserDetailsResponse), args.Error(1)
+}
+
 func GenereateDetails() entities.Details {
 	return entities.Details{
 		Country:      "Mexico",
@@ -123,6 +129,6 @@ func GenereateDetails() entities.Details {
 		MobileNumber: "11223344",
 		Married:      false,
 		Height:       1.75,
-		Weigth:       76.0,
+		Weight:       76.0,
 	}
 }
