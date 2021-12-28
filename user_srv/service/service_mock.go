@@ -2,7 +2,9 @@ package service
 
 import (
 	"context"
+	"os"
 
+	"github.com/go-kit/log"
 	"github.com/mauricioww/user_microsrv/user_srv/entities"
 	"github.com/stretchr/testify/mock"
 )
@@ -39,4 +41,22 @@ func (r *UserRepositoryMock) DeleteUser(ctx context.Context, id int) (bool, erro
 	args := r.Called(ctx, id)
 
 	return args.Bool(0), args.Error(1)
+}
+
+func InitLogger() log.Logger {
+	var logger log.Logger
+	{
+		logger = log.NewLogfmtLogger(os.Stderr)
+		logger = log.NewSyncLogger(logger)
+		logger = log.With(
+			logger,
+			"service",
+			"user_grpc",
+			"time",
+			log.DefaultTimestampUTC,
+			"caller",
+			log.DefaultCaller,
+		)
+	}
+	return logger
 }

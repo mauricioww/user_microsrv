@@ -53,7 +53,7 @@ func main() {
 
 	var grpc_user_srv service.GrpcUserService
 	{
-		mysql_repository := repository.NewUserSrvRepository(db, logger)
+		mysql_repository := repository.NewUserRepository(db, logger)
 		grpc_user_srv = service.NewGrpcUserService(mysql_repository, logger)
 	}
 

@@ -65,7 +65,7 @@ func (g *grpcUserDetailsService) GetUserDetails(ctx context.Context, user_id int
 }
 
 func (g *grpcUserDetailsService) DeleteUserDetails(ctx context.Context, user_id int) (bool, error) {
-	logger := log.With(g.logger, "method", "get_user_details")
+	logger := log.With(g.logger, "method", "delete_user_details")
 	res, err := g.repository.DeleteUserDetails(ctx, user_id)
 
 	if err != nil {
