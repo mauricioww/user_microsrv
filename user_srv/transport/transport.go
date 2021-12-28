@@ -56,7 +56,7 @@ func decodeCreateUserRequest(_ context.Context, request interface{}) (interface{
 	create_pb, ok := request.(*userpb.CreateUserRequest)
 
 	if !ok {
-		return nil, errors.New("No proto message 'CreateUserRequest' request")
+		return nil, errors.New("No proto message 'CreateUserRequest'")
 	}
 
 	req := CreateUserRequest{
@@ -77,7 +77,7 @@ func decodeAuthenticateRequest(_ context.Context, request interface{}) (interfac
 	auth_pb, ok := request.(*userpb.AuthenticateRequest)
 
 	if !ok {
-		return nil, errors.New("No 'AuthenticateRequest' type")
+		return nil, errors.New("No proto message 'AuthenticateRequest'")
 	}
 
 	req := AuthenticateRequest{
@@ -98,7 +98,7 @@ func decodeUpdateUserRequest(_ context.Context, request interface{}) (interface{
 	update_pb, ok := request.(*userpb.UpdateUserRequest)
 
 	if !ok {
-		return nil, errors.New("No 'UpdateUserRequest' type")
+		return nil, errors.New("No proto message 'UpdateUserRequest'")
 	}
 
 	req := UpdateUserRequest{
@@ -121,7 +121,7 @@ func decodeGetUserRequest(_ context.Context, request interface{}) (interface{}, 
 	get_pb, ok := request.(*userpb.GetUserRequest)
 
 	if !ok {
-		return nil, errors.New("No 'GetUserRequest' type")
+		return nil, errors.New("No proto message 'GetUserRequest'")
 	}
 
 	req := GetUserRequest{
@@ -145,7 +145,7 @@ func decodeDeleteUserRequest(_ context.Context, request interface{}) (interface{
 	delete_pb, ok := request.(*userpb.DeleteUserRequest)
 
 	if !ok {
-		return nil, errors.New("No 'DeleteUserRequest' type")
+		return nil, errors.New("No proto message 'DeleteUserRequest'")
 	}
 
 	req := DeleteUserRequest{
@@ -168,7 +168,7 @@ func (g *gRPCServer) CreateUser(ctx context.Context, req *userpb.CreateUserReque
 		return nil, err
 	}
 
-	return res.(*userpb.CreateUserResponse), nil
+	return res.(*userpb.CreateUserResponse), err
 }
 
 func (g *gRPCServer) Authenticate(ctx context.Context, req *userpb.AuthenticateRequest) (*userpb.AuthenticateResponse, error) {

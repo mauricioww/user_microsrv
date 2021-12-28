@@ -117,7 +117,7 @@ func TestGetUserDetails(t *testing.T) {
 		{
 			test_name: "get user details which does not exist error",
 			data:      1,
-			err:       errors.New("User does not exists"),
+			err:       errors.New("User not found"),
 		},
 	}
 
@@ -174,7 +174,7 @@ func TestDeleteUserDetails(t *testing.T) {
 		{
 			test_name: "delete user details which does not exist error",
 			data:      1,
-			err:       errors.New("User does not exists"),
+			err:       errors.New("User not found"),
 		},
 	}
 

@@ -2,8 +2,6 @@ package repository
 
 import (
 	"context"
-	"errors"
-	"fmt"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/log/level"
@@ -28,15 +26,16 @@ type httpRepository struct {
 }
 
 func NewHttpRepository(conn1 *grpc.ClientConn, conn2 *grpc.ClientConn, logger log.Logger) HttpRepository {
-	return httpRepository{
+	return &httpRepository{
 		user_client:    userpb.NewUserServiceClient(conn1),
 		details_client: detailspb.NewUserDetailsServiceClient(conn2),
 		logger:         log.With(logger, "http_service", "repository"),
 	}
 }
 
-func (hr httpRepository) CreateUser(ctx context.Context, user entities.User) (int, error) {
-	logger := log.With(hr.logger, "method", "create_users")
+func (r *httpRepository) CreateUser(ctx context.Context, user entities.User) (int, error) {
+	logger := log.With(r.logger, "method", "create_users")
+	res := -1
 
 	userpb_req := userpb.CreateUserRequest{
 		Email:    user.Email,
@@ -44,10 +43,10 @@ func (hr httpRepository) CreateUser(ctx context.Context, user entities.User) (in
 		Age:      uint32(user.Age),
 	}
 
-	user_res, err := hr.user_client.CreateUser(ctx, &userpb_req)
+	user_res, err := r.user_client.CreateUser(ctx, &userpb_req)
 	if err != nil {
 		level.Error(logger).Log("err", err)
-		return -1, err
+		return res, err
 	}
 
 	details_req := detailspb.SetUserDetailsRequest{
@@ -60,42 +59,40 @@ func (hr httpRepository) CreateUser(ctx context.Context, user entities.User) (in
 		Weight:       user.Details.Weight,
 	}
 
-	details_res, err := hr.details_client.SetUserDetails(ctx, &details_req)
+	details_res, err := r.details_client.SetUserDetails(ctx, &details_req)
 	if err != nil {
 		level.Error(logger).Log("err", err)
-		return -1, err
+		return res, err
 	}
 
 	if details_res.GetSuccess() {
-		fmt.Println("details setted")
+		res = int(user_res.GetId())
 	}
 
-	return int(user_res.Id), nil
+	return res, nil
 }
 
-func (hr httpRepository) Authenticate(ctx context.Context, session entities.Session) (int, error) {
-	logger := log.With(hr.logger, "method", "authenticate_user")
+func (r *httpRepository) Authenticate(ctx context.Context, session entities.Session) (int, error) {
+	logger := log.With(r.logger, "method", "authenticate_user")
+	res := -1
 
-	if session.Email == "" || session.Password == "" {
-		return -1, errors.New("Email or Password empty")
-	}
-
-	grpc_req := userpb.AuthenticateRequest{
+	auth_req := userpb.AuthenticateRequest{
 		Email:    session.Email,
 		Password: session.Password,
 	}
-	grpc_res, err := hr.user_client.Authenticate(ctx, &grpc_req)
+	auth_res, err := r.user_client.Authenticate(ctx, &auth_req)
 
 	if err != nil {
 		level.Error(logger).Log("err", err)
-		return -1, err
+	} else {
+		res = int(auth_res.GetUserId())
 	}
 
-	return int(grpc_res.GetUserId()), nil
+	return res, err
 }
 
-func (hr httpRepository) UpdateUser(ctx context.Context, user entities.UserUpdate) (bool, error) {
-	logger := log.With(hr.logger, "method", "update_user")
+func (r *httpRepository) UpdateUser(ctx context.Context, user entities.UserUpdate) (bool, error) {
+	logger := log.With(r.logger, "method", "update_user")
 	var res bool
 
 	user_req := userpb.UpdateUserRequest{
@@ -114,27 +111,26 @@ func (hr httpRepository) UpdateUser(ctx context.Context, user entities.UserUpdat
 		Weight:       user.Details.Weight,
 	}
 
-	user_res, err := hr.user_client.UpdateUser(ctx, &user_req)
+	user_res, err := r.user_client.UpdateUser(ctx, &user_req)
 	if err != nil {
 		level.Error(logger).Log("err", err)
-		return false, err
+		return res, err
 	}
 
-	res = user_res.GetSuccess()
-
-	details_res, err := hr.details_client.SetUserDetails(ctx, &details_req)
+	details_res, err := r.details_client.SetUserDetails(ctx, &details_req)
 	if err != nil {
 		level.Error(logger).Log("err", err)
-		return false, err
+		return res, err
 	}
 
-	res = details_res.GetSuccess()
+	res = details_res.GetSuccess() && user_res.GetSuccess()
 
 	return res, nil
 }
 
-func (hr httpRepository) GetUser(ctx context.Context, id int) (entities.User, error) {
-	logger := log.With(hr.logger, "method", "get_user")
+func (r *httpRepository) GetUser(ctx context.Context, id int) (entities.User, error) {
+	logger := log.With(r.logger, "method", "get_user")
+	var res entities.User
 
 	user_req := userpb.GetUserRequest{
 		Id: uint32(id),
@@ -143,20 +139,20 @@ func (hr httpRepository) GetUser(ctx context.Context, id int) (entities.User, er
 		UserId: uint32(id),
 	}
 
-	user_res, err := hr.user_client.GetUser(ctx, &user_req)
+	user_res, err := r.user_client.GetUser(ctx, &user_req)
 
 	if err != nil {
 		level.Error(logger).Log("err", err)
-		return entities.User{}, err
+		return res, err
 	}
 
-	details_res, err := hr.details_client.GetUserDetails(ctx, &details_req)
+	details_res, err := r.details_client.GetUserDetails(ctx, &details_req)
 	if err != nil {
 		level.Error(logger).Log("err", err)
-		return entities.User{}, err
+		return res, err
 	}
 
-	u := entities.User{
+	res = entities.User{
 		Email:    user_res.GetEmail(),
 		Password: user_res.GetPassword(),
 		Age:      int(user_res.GetAge()),
@@ -170,36 +166,34 @@ func (hr httpRepository) GetUser(ctx context.Context, id int) (entities.User, er
 		},
 	}
 
-	return u, nil
+	return res, nil
 }
 
-func (hr httpRepository) DeleteUser(ctx context.Context, id int) (bool, error) {
-	logger := log.With(hr.logger, "method", "delete_user")
+func (r *httpRepository) DeleteUser(ctx context.Context, id int) (bool, error) {
+	logger := log.With(r.logger, "method", "delete_user")
 	var res bool
 
 	user_req := userpb.DeleteUserRequest{
 		Id: uint32(id),
 	}
-	user_res, err := hr.user_client.DeleteUser(ctx, &user_req)
+	user_res, err := r.user_client.DeleteUser(ctx, &user_req)
 
 	if err != nil {
 		level.Error(logger).Log("err", err)
-		return false, err
+		return res, err
 	}
-
-	res = user_res.GetSuccess()
 
 	details_req := detailspb.DeleteUserDetailsRequest{
 		UserId: uint32(id),
 	}
-	details_res, err := hr.details_client.DeleteUserDetails(ctx, &details_req)
+	details_res, err := r.details_client.DeleteUserDetails(ctx, &details_req)
 
 	if err != nil {
 		level.Error(logger).Log("err", err)
-		return false, err
+		return res, err
 	}
 
-	res = details_res.GetSuccess()
+	res = details_res.GetSuccess() && user_res.GetSuccess()
 
 	return res, nil
 }

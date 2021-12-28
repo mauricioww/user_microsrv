@@ -20,19 +20,30 @@ type GrpcUserService interface {
 }
 
 type grpcUserService struct {
-	repository repository.UserSrvRepository
+	repository repository.UserRepository
 	logger     log.Logger
 }
 
-func NewGrpcUserService(r repository.UserSrvRepository, l log.Logger) GrpcUserService {
+func NewGrpcUserService(r repository.UserRepository, l log.Logger) GrpcUserService {
 	return &grpcUserService{
-		logger:     l,
 		repository: r,
+		logger:     l,
 	}
 }
 
 func (g *grpcUserService) CreateUser(ctx context.Context, email string, pwd string, age int) (int, error) {
 	logger := log.With(g.logger, "method", "create_user")
+
+	if email == "" {
+		e := errors.New("Email empty")
+		level.Error(logger).Log("validation: ", e)
+		return -1, e
+	} else if pwd == "" {
+		e := errors.New("Password empty")
+		level.Error(logger).Log("validation: ", e)
+		return -1, e
+	}
+
 	ciphered_pwd := helpers.Cipher(pwd)
 
 	user := entities.User{
@@ -55,6 +66,16 @@ func (g *grpcUserService) CreateUser(ctx context.Context, email string, pwd stri
 func (g *grpcUserService) Authenticate(ctx context.Context, email string, pwd string) (int, error) {
 	logger := log.With(g.logger, "method", "authenticate")
 
+	if email == "" {
+		e := errors.New("Email empty")
+		level.Error(logger).Log("validation: ", e)
+		return -1, e
+	} else if pwd == "" {
+		e := errors.New("Password empty")
+		level.Error(logger).Log("validation: ", e)
+		return -1, e
+	}
+
 	auth := entities.Session{
 		Email:    email,
 		Password: pwd,
@@ -65,9 +86,7 @@ func (g *grpcUserService) Authenticate(ctx context.Context, email string, pwd st
 	if err != nil {
 		level.Error(logger).Log("ERROR", err)
 		return -1, err
-	}
-
-	if cipher := helpers.Cipher(auth.Password); cipher != hashed_pwd {
+	} else if ciphered_pwd := helpers.Cipher(auth.Password); ciphered_pwd != hashed_pwd {
 		e := errors.New("Password error")
 		level.Error(logger).Log("ERROR", e)
 		return -1, e
@@ -79,6 +98,17 @@ func (g *grpcUserService) Authenticate(ctx context.Context, email string, pwd st
 
 func (g *grpcUserService) UpdateUser(ctx context.Context, id int, email string, pwd string, age int) (bool, error) {
 	logger := log.With(g.logger, "method", "update_user")
+
+	if email == "" {
+		e := errors.New("Email empty")
+		level.Error(logger).Log("validation: ", e)
+		return false, e
+	} else if pwd == "" {
+		e := errors.New("Password empty")
+		level.Error(logger).Log("validation: ", e)
+		return false, e
+	}
+
 	ciphered_pwd := helpers.Cipher(pwd)
 	var res bool
 
@@ -106,30 +136,28 @@ func (g *grpcUserService) UpdateUser(ctx context.Context, id int, email string, 
 func (g *grpcUserService) GetUser(ctx context.Context, id int) (entities.User, error) {
 	logger := log.With(g.logger, "method", "get_user")
 
-	user, err := g.repository.GetUser(ctx, id)
+	res, err := g.repository.GetUser(ctx, id)
 
 	if err != nil {
 		level.Error(logger).Log("ERROR", err)
 	} else {
-		original_pwd := helpers.Decipher(user.Password)
-		user.Password = original_pwd
+		res.Password = helpers.Decipher(res.Password)
 		logger.Log("action", "success")
 	}
 
-	return user, err
+	return res, err
 }
 
 func (g *grpcUserService) DeleteUser(ctx context.Context, id int) (bool, error) {
 	logger := log.With(g.logger, "method", "delete_user")
 
-	success, err := g.repository.DeleteUser(ctx, id)
+	res, err := g.repository.DeleteUser(ctx, id)
 
 	if err != nil {
 		level.Error(logger).Log("ERROR", err)
-		return false, err
 	} else {
 		logger.Log("action", "success")
 	}
 
-	return success, err
+	return res, err
 }

@@ -103,7 +103,7 @@ func TestGetUserDetails(t *testing.T) {
 			data: transport.GetUserDetailsRequest{
 				UserId: 1,
 			},
-			err: errors.New("User does not exists"),
+			err: errors.New("User not found"),
 		},
 	}
 	for _, tc := range test_cases {
@@ -151,7 +151,7 @@ func TestDeleteUserDetails(t *testing.T) {
 			data: transport.DeleteUserDetailsRequest{
 				UserId: 1,
 			},
-			err: errors.New("User does not exists"),
+			err: errors.New("User not found"),
 		},
 	}
 	for _, tc := range test_cases {

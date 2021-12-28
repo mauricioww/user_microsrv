@@ -25,11 +25,11 @@ type userDetailsRepository struct {
 func NewUserDetailsRepository(mongo_db *mongo.Database, l log.Logger) UserDetailsRepository {
 	return &userDetailsRepository{
 		db:     mongo_db,
-		logger: log.With(l, "repository", "mysql"),
+		logger: log.With(l, "repository", "mongodb"),
 	}
 }
 
-func (r userDetailsRepository) SetUserDetails(ctx context.Context, details entities.UserDetails) (bool, error) {
+func (r *userDetailsRepository) SetUserDetails(ctx context.Context, details entities.UserDetails) (bool, error) {
 	collection := r.db.Collection("information")
 	var err error
 
@@ -46,12 +46,12 @@ func (r userDetailsRepository) SetUserDetails(ctx context.Context, details entit
 	return true, nil
 }
 
-func (r userDetailsRepository) GetUserDetails(ctx context.Context, user_id int) (entities.UserDetails, error) {
+func (r *userDetailsRepository) GetUserDetails(ctx context.Context, user_id int) (entities.UserDetails, error) {
 	collection := r.db.Collection("information")
 	var res entities.UserDetails
 
 	if helpers.NoExists(collection, ctx, user_id) {
-		err := errors.New("User does not exists")
+		err := errors.New("User not found")
 		return res, err
 	} else if err := collection.FindOne(ctx, bson.D{{"_id", user_id}}).Decode(&res); err != nil {
 		return res, err
@@ -60,12 +60,12 @@ func (r userDetailsRepository) GetUserDetails(ctx context.Context, user_id int) 
 	return res, nil
 }
 
-func (r userDetailsRepository) DeleteUserDetails(ctx context.Context, user_id int) (bool, error) {
+func (r *userDetailsRepository) DeleteUserDetails(ctx context.Context, user_id int) (bool, error) {
 	collection := r.db.Collection("information")
 	var res bool
 
 	if helpers.NoExists(collection, ctx, user_id) {
-		err := errors.New("User does not exists")
+		err := errors.New("User not found")
 		return res, err
 	} else if _, err := collection.DeleteOne(ctx, bson.D{{"_id", user_id}}); err != nil {
 		return res, err

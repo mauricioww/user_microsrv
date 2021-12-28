@@ -32,8 +32,8 @@ func NewHttpService(r repository.HttpRepository, l log.Logger) HttpService {
 	}
 }
 
-func (hs httpService) CreateUser(ctx context.Context, email string, pwd string, age int, details entities.Details) (int, error) {
-	logger := log.With(hs.logger, "method", "create_user")
+func (s *httpService) CreateUser(ctx context.Context, email string, pwd string, age int, details entities.Details) (int, error) {
+	logger := log.With(s.logger, "method", "create_user")
 
 	user := entities.User{
 		Email:    email,
@@ -42,27 +42,27 @@ func (hs httpService) CreateUser(ctx context.Context, email string, pwd string, 
 		Details:  details,
 	}
 
-	res, err := hs.repository.CreateUser(ctx, user)
+	res, err := s.repository.CreateUser(ctx, user)
 
 	if err != nil {
 		level.Error(logger).Log("ERROR: ", err)
-		return -1, err
+	} else {
+		logger.Log("action", "success")
 	}
 
-	logger.Log("action", "success")
-	return res, nil
+	return res, err
 }
 
-func (hs httpService) Authenticate(ctx context.Context, email string, pwd string) (string, error) {
-	logger := log.With(hs.logger, "method", "authenticate")
-
+func (s *httpService) Authenticate(ctx context.Context, email string, pwd string) (string, error) {
+	logger := log.With(s.logger, "method", "authenticate")
 	var response string
+
 	session := entities.Session{
 		Email:    email,
 		Password: pwd,
 	}
 
-	res, err := hs.repository.Authenticate(ctx, session)
+	res, err := s.repository.Authenticate(ctx, session)
 
 	if err != nil {
 		level.Error(logger).Log("ERROR: ", err)
@@ -88,8 +88,8 @@ func (hs httpService) Authenticate(ctx context.Context, email string, pwd string
 	return response, nil
 }
 
-func (hs httpService) UpdateUser(ctx context.Context, user_id int, email string, pwd string, age int, details entities.Details) (bool, error) {
-	logger := log.With(hs.logger, "method", "authenticate")
+func (s *httpService) UpdateUser(ctx context.Context, user_id int, email string, pwd string, age int, details entities.Details) (bool, error) {
+	logger := log.With(s.logger, "method", "update_user")
 	info_update := entities.UserUpdate{
 		UserId: user_id,
 		User: entities.User{
@@ -100,7 +100,7 @@ func (hs httpService) UpdateUser(ctx context.Context, user_id int, email string,
 		},
 	}
 
-	status, err := hs.repository.UpdateUser(ctx, info_update)
+	res, err := s.repository.UpdateUser(ctx, info_update)
 
 	if err != nil {
 		level.Error(logger).Log("ERROR: ", err)
@@ -108,33 +108,33 @@ func (hs httpService) UpdateUser(ctx context.Context, user_id int, email string,
 		logger.Log("action", "success")
 	}
 
-	return status, err
+	return res, err
 }
 
-func (hs httpService) GetUser(ctx context.Context, user_id int) (entities.User, error) {
-	logger := log.With(hs.logger, "method", "get_user")
+func (s *httpService) GetUser(ctx context.Context, user_id int) (entities.User, error) {
+	logger := log.With(s.logger, "method", "get_user")
 
-	res, err := hs.repository.GetUser(ctx, user_id)
+	res, err := s.repository.GetUser(ctx, user_id)
 
 	if err != nil {
 		level.Error(logger).Log("ERROR: ", err)
-		return entities.User{}, err
+	} else {
+		logger.Log("action", "success")
 	}
 
-	logger.Log("action", "success")
-	return res, nil
+	return res, err
 }
 
-func (hs httpService) DeleteUser(ctx context.Context, user_id int) (bool, error) {
-	logger := log.With(hs.logger, "method", "delete_user")
+func (s *httpService) DeleteUser(ctx context.Context, user_id int) (bool, error) {
+	logger := log.With(s.logger, "method", "delete_user")
 
-	res, err := hs.repository.DeleteUser(ctx, user_id)
+	res, err := s.repository.DeleteUser(ctx, user_id)
 
 	if err != nil {
 		level.Error(logger).Log("ERROR: ", err)
-		return false, err
+	} else {
+		logger.Log("action", "success")
 	}
 
-	logger.Log("action", "success")
-	return res, nil
+	return res, err
 }

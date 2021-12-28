@@ -42,7 +42,7 @@ func decodeSetUserDetailsRequest(_ context.Context, request interface{}) (interf
 	set_details, ok := request.(*detailspb.SetUserDetailsRequest)
 
 	if !ok {
-		return nil, errors.New("No proto message 'SetUserDetailsRequest' request")
+		return nil, errors.New("No proto message 'SetUserDetailsRequest'")
 	}
 
 	req := SetUserDetailsRequest{
@@ -67,7 +67,7 @@ func decodeGetUserDetailsRequest(_ context.Context, request interface{}) (interf
 	get_details, ok := request.(*detailspb.GetUserDetailsRequest)
 
 	if !ok {
-		return nil, errors.New("No proto message 'GetUserDetailsRequest' request")
+		return nil, errors.New("No proto message 'GetUserDetailsRequest'")
 	}
 
 	req := GetUserDetailsRequest{
@@ -88,7 +88,7 @@ func decodeDeleteUserDetails(_ context.Context, request interface{}) (interface{
 	delete_details, ok := request.(*detailspb.DeleteUserDetailsRequest)
 
 	if !ok {
-		return nil, errors.New("No proto message 'DeleteUserDetailsRequest' request")
+		return nil, errors.New("No proto message 'DeleteUserDetailsRequest'")
 	}
 
 	req := DeleteUserDetailsRequest{
