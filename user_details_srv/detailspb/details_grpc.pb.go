@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 type UserDetailsServiceClient interface {
 	SetUserDetails(ctx context.Context, in *SetUserDetailsRequest, opts ...grpc.CallOption) (*SetUserDetailsResponse, error)
 	GetUserDetails(ctx context.Context, in *GetUserDetailsRequest, opts ...grpc.CallOption) (*GetUserDetailsResponse, error)
+	DeleteUserDetails(ctx context.Context, in *DeleteUserDetailsRequest, opts ...grpc.CallOption) (*DeleteUserDetailsResponse, error)
 }
 
 type userDetailsServiceClient struct {
@@ -48,12 +49,22 @@ func (c *userDetailsServiceClient) GetUserDetails(ctx context.Context, in *GetUs
 	return out, nil
 }
 
+func (c *userDetailsServiceClient) DeleteUserDetails(ctx context.Context, in *DeleteUserDetailsRequest, opts ...grpc.CallOption) (*DeleteUserDetailsResponse, error) {
+	out := new(DeleteUserDetailsResponse)
+	err := c.cc.Invoke(ctx, "/UserDetailsService/DeleteUserDetails", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserDetailsServiceServer is the server API for UserDetailsService service.
 // All implementations must embed UnimplementedUserDetailsServiceServer
 // for forward compatibility
 type UserDetailsServiceServer interface {
 	SetUserDetails(context.Context, *SetUserDetailsRequest) (*SetUserDetailsResponse, error)
 	GetUserDetails(context.Context, *GetUserDetailsRequest) (*GetUserDetailsResponse, error)
+	DeleteUserDetails(context.Context, *DeleteUserDetailsRequest) (*DeleteUserDetailsResponse, error)
 	mustEmbedUnimplementedUserDetailsServiceServer()
 }
 
@@ -66,6 +77,9 @@ func (UnimplementedUserDetailsServiceServer) SetUserDetails(context.Context, *Se
 }
 func (UnimplementedUserDetailsServiceServer) GetUserDetails(context.Context, *GetUserDetailsRequest) (*GetUserDetailsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserDetails not implemented")
+}
+func (UnimplementedUserDetailsServiceServer) DeleteUserDetails(context.Context, *DeleteUserDetailsRequest) (*DeleteUserDetailsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteUserDetails not implemented")
 }
 func (UnimplementedUserDetailsServiceServer) mustEmbedUnimplementedUserDetailsServiceServer() {}
 
@@ -116,6 +130,24 @@ func _UserDetailsService_GetUserDetails_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserDetailsService_DeleteUserDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteUserDetailsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserDetailsServiceServer).DeleteUserDetails(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/UserDetailsService/DeleteUserDetails",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserDetailsServiceServer).DeleteUserDetails(ctx, req.(*DeleteUserDetailsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserDetailsService_ServiceDesc is the grpc.ServiceDesc for UserDetailsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -130,6 +162,10 @@ var UserDetailsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUserDetails",
 			Handler:    _UserDetailsService_GetUserDetails_Handler,
+		},
+		{
+			MethodName: "DeleteUserDetails",
+			Handler:    _UserDetailsService_DeleteUserDetails_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -175,17 +175,31 @@ func (hr httpRepository) GetUser(ctx context.Context, id int) (entities.User, er
 
 func (hr httpRepository) DeleteUser(ctx context.Context, id int) (bool, error) {
 	logger := log.With(hr.logger, "method", "delete_user")
+	var res bool
 
-	grpc_req := userpb.DeleteUserRequest{
+	user_req := userpb.DeleteUserRequest{
 		Id: uint32(id),
 	}
-
-	grpc_res, err := hr.user_client.DeleteUser(ctx, &grpc_req)
+	user_res, err := hr.user_client.DeleteUser(ctx, &user_req)
 
 	if err != nil {
 		level.Error(logger).Log("err", err)
 		return false, err
 	}
 
-	return grpc_res.GetSuccess(), nil
+	res = user_res.GetSuccess()
+
+	details_req := detailspb.DeleteUserDetailsRequest{
+		UserId: uint32(id),
+	}
+	details_res, err := hr.details_client.DeleteUserDetails(ctx, &details_req)
+
+	if err != nil {
+		level.Error(logger).Log("err", err)
+		return false, err
+	}
+
+	res = details_res.GetSuccess()
+
+	return res, nil
 }

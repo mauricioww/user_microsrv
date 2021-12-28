@@ -29,7 +29,16 @@ message GetUserDetailsResponse {
     float weight = 6;
 }
 
+message DeleteUserDetailsRequest {
+    uint32 user_id = 1;
+}
+
+message DeleteUserDetailsResponse {
+    bool success = 1;
+}
+
 service UserDetailsService {
     rpc SetUserDetails(SetUserDetailsRequest) returns (SetUserDetailsResponse) {};
     rpc GetUserDetails(GetUserDetailsRequest) returns (GetUserDetailsResponse) {};
+    rpc DeleteUserDetails(DeleteUserDetailsRequest) returns (DeleteUserDetailsResponse) {};
 }

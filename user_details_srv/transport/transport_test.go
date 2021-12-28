@@ -125,3 +125,50 @@ func TestGetUserDetails(t *testing.T) {
 		})
 	}
 }
+
+func TestDeleteUserDetails(t *testing.T) {
+	grpc_user_srv_mock := new(transport.GrpcUserDetailsSrvMock)
+
+	endpoints := transport.MakeGrpcUserDetailsServiceEndpoints(grpc_user_srv_mock)
+
+	test_cases := []struct {
+		test_name string
+		data      transport.DeleteUserDetailsRequest
+		res       transport.DeleteUserDetailsResponse
+		srv_res   bool
+		err       error
+	}{
+		{
+			test_name: "delete user details success",
+			data: transport.DeleteUserDetailsRequest{
+				UserId: 0,
+			},
+			srv_res: true,
+			err:     nil,
+		},
+		{
+			test_name: "delete user details which does not exist error",
+			data: transport.DeleteUserDetailsRequest{
+				UserId: 1,
+			},
+			err: errors.New("User does not exists"),
+		},
+	}
+	for _, tc := range test_cases {
+		t.Run(tc.test_name, func(t *testing.T) {
+			// prepare
+			assert := assert.New(t)
+			ctx := context.Background()
+			tc.res = transport.DeleteUserDetailsResponse{Success: tc.srv_res}
+
+			// act
+			grpc_user_srv_mock.On("DeleteUserDetails", ctx, tc.data.UserId).Return(tc.srv_res, tc.err)
+
+			res, err := endpoints.DeleteUserDetails(ctx, tc.data)
+
+			// assert
+			assert.Equal(tc.res, res)
+			assert.Equal(tc.err, err)
+		})
+	}
+}

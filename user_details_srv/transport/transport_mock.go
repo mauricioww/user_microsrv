@@ -22,3 +22,9 @@ func (g *GrpcUserDetailsSrvMock) GetUserDetails(ctx context.Context, user_id int
 
 	return args.Get(0).(entities.UserDetails), args.Error(1)
 }
+
+func (g *GrpcUserDetailsSrvMock) DeleteUserDetails(ctx context.Context, user_id int) (bool, error) {
+	args := g.Called(ctx, user_id)
+
+	return args.Bool(0), args.Error(1)
+}

@@ -9,8 +9,9 @@ import (
 )
 
 type gRPCServer struct {
-	setUserDetails grpc_gokit.Handler
-	getUserDetails grpc_gokit.Handler
+	setUserDetails    grpc_gokit.Handler
+	getUserDetails    grpc_gokit.Handler
+	deleteUserDetails grpc_gokit.Handler
 
 	detailspb.UnimplementedUserDetailsServiceServer
 }
@@ -28,24 +29,30 @@ func NewGrpcUserDetailsServer(endpoints GrpcUserDetailsServiceEndpoints) details
 			decodeGetUserDetailsRequest,
 			encodeGetUserDetailsResponse,
 		),
+
+		deleteUserDetails: grpc_gokit.NewServer(
+			endpoints.DeleteUserDetails,
+			decodeDeleteUserDetails,
+			encodeDeleteUserDetails,
+		),
 	}
 }
 
 func decodeSetUserDetailsRequest(_ context.Context, request interface{}) (interface{}, error) {
-	set_details_pb, ok := request.(*detailspb.SetUserDetailsRequest)
+	set_details, ok := request.(*detailspb.SetUserDetailsRequest)
 
 	if !ok {
 		return nil, errors.New("No proto message 'SetUserDetailsRequest' request")
 	}
 
 	req := SetUserDetailsRequest{
-		UserId:       int(set_details_pb.GetUserId()),
-		Country:      set_details_pb.GetCountry(),
-		City:         set_details_pb.GetCity(),
-		MobileNumber: set_details_pb.GetMobileNumber(),
-		Married:      set_details_pb.GetMarried(),
-		Height:       set_details_pb.GetHeight(),
-		Weigth:       set_details_pb.GetWeight(),
+		UserId:       int(set_details.GetUserId()),
+		Country:      set_details.GetCountry(),
+		City:         set_details.GetCity(),
+		MobileNumber: set_details.GetMobileNumber(),
+		Married:      set_details.GetMarried(),
+		Height:       set_details.GetHeight(),
+		Weigth:       set_details.GetWeight(),
 	}
 
 	return req, nil
@@ -57,14 +64,14 @@ func encodeSetUserDetailsResponse(_ context.Context, response interface{}) (inte
 }
 
 func decodeGetUserDetailsRequest(_ context.Context, request interface{}) (interface{}, error) {
-	get_details_pb, ok := request.(*detailspb.GetUserDetailsRequest)
+	get_details, ok := request.(*detailspb.GetUserDetailsRequest)
 
 	if !ok {
 		return nil, errors.New("No proto message 'GetUserDetailsRequest' request")
 	}
 
 	req := GetUserDetailsRequest{
-		UserId: int(get_details_pb.GetUserId()),
+		UserId: int(get_details.GetUserId()),
 	}
 
 	return req, nil
@@ -75,6 +82,25 @@ func encodeGetUserDetailsResponse(_ context.Context, response interface{}) (inte
 
 	return &detailspb.GetUserDetailsResponse{Country: res.Country, City: res.City, MobileNumber: res.MobileNumber,
 		Married: res.Married, Height: res.Height, Weight: res.Weight}, nil
+}
+
+func decodeDeleteUserDetails(_ context.Context, request interface{}) (interface{}, error) {
+	delete_details, ok := request.(*detailspb.DeleteUserDetailsRequest)
+
+	if !ok {
+		return nil, errors.New("No proto message 'DeleteUserDetailsRequest' request")
+	}
+
+	req := DeleteUserDetailsRequest{
+		UserId: int(delete_details.GetUserId()),
+	}
+
+	return req, nil
+}
+
+func encodeDeleteUserDetails(_ context.Context, response interface{}) (interface{}, error) {
+	res := response.(DeleteUserDetailsResponse)
+	return &detailspb.DeleteUserDetailsResponse{Success: res.Success}, nil
 }
 
 func (g *gRPCServer) SetUserDetails(ctx context.Context, req *detailspb.SetUserDetailsRequest) (*detailspb.SetUserDetailsResponse, error) {
@@ -93,5 +119,16 @@ func (g *gRPCServer) GetUserDetails(ctx context.Context, req *detailspb.GetUserD
 	if err != nil {
 		return nil, err
 	}
+
 	return res.(*detailspb.GetUserDetailsResponse), nil
+}
+
+func (g *gRPCServer) DeleteUserDetails(ctx context.Context, req *detailspb.DeleteUserDetailsRequest) (*detailspb.DeleteUserDetailsResponse, error) {
+	_, res, err := g.deleteUserDetails.ServeGRPC(ctx, req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return res.(*detailspb.DeleteUserDetailsResponse), nil
 }
