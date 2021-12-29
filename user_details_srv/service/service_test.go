@@ -3,35 +3,18 @@ package service_test
 import (
 	"context"
 	"errors"
-	"os"
 	"testing"
 
-	"github.com/go-kit/log"
 	"github.com/mauricioww/user_microsrv/user_details_srv/entities"
 	"github.com/mauricioww/user_microsrv/user_details_srv/service"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestSetUserDetails(t *testing.T) {
-	var logger log.Logger
-	{
-		logger = log.NewLogfmtLogger(os.Stderr)
-		logger = log.NewSyncLogger(logger)
-		logger = log.With(
-			logger,
-			"service",
-			"user_details",
-			"time",
-			log.DefaultTimestampUTC,
-			"caller",
-			log.DefaultCaller,
-		)
-	}
-
 	var grpc_user_details_srv service.GrpcUserDetailsService
 
 	user_details_repo_mock := new(service.UserDetailsRepositoryMock)
-	grpc_user_details_srv = service.NewGrpcUserDetailsService(user_details_repo_mock, logger)
+	grpc_user_details_srv = service.NewGrpcUserDetailsService(user_details_repo_mock, service.InitLogger())
 
 	test_cases := []struct {
 		test_name string
@@ -74,25 +57,10 @@ func TestSetUserDetails(t *testing.T) {
 }
 
 func TestGetUserDetails(t *testing.T) {
-	var logger log.Logger
-	{
-		logger = log.NewLogfmtLogger(os.Stderr)
-		logger = log.NewSyncLogger(logger)
-		logger = log.With(
-			logger,
-			"service",
-			"user_details",
-			"time",
-			log.DefaultTimestampUTC,
-			"caller",
-			log.DefaultCaller,
-		)
-	}
-
 	var grpc_user_details_srv service.GrpcUserDetailsService
 
 	user_details_repo_mock := new(service.UserDetailsRepositoryMock)
-	grpc_user_details_srv = service.NewGrpcUserDetailsService(user_details_repo_mock, logger)
+	grpc_user_details_srv = service.NewGrpcUserDetailsService(user_details_repo_mock, service.InitLogger())
 
 	test_cases := []struct {
 		test_name string
@@ -139,25 +107,10 @@ func TestGetUserDetails(t *testing.T) {
 }
 
 func TestDeleteUserDetails(t *testing.T) {
-	var logger log.Logger
-	{
-		logger = log.NewLogfmtLogger(os.Stderr)
-		logger = log.NewSyncLogger(logger)
-		logger = log.With(
-			logger,
-			"service",
-			"user_details",
-			"time",
-			log.DefaultTimestampUTC,
-			"caller",
-			log.DefaultCaller,
-		)
-	}
-
 	var grpc_user_details_srv service.GrpcUserDetailsService
 
 	user_details_repo_mock := new(service.UserDetailsRepositoryMock)
-	grpc_user_details_srv = service.NewGrpcUserDetailsService(user_details_repo_mock, logger)
+	grpc_user_details_srv = service.NewGrpcUserDetailsService(user_details_repo_mock, service.InitLogger())
 
 	test_cases := []struct {
 		test_name string

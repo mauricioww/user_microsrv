@@ -5,48 +5,45 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/mauricioww/user_microsrv/user_details_srv/detailspb"
 	"github.com/mauricioww/user_microsrv/user_details_srv/entities"
 	"github.com/mauricioww/user_microsrv/user_details_srv/transport"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestSetUserDetails(t *testing.T) {
-	grpc_user_srv_mock := new(transport.GrpcUserDetailsSrvMock)
-
-	endpoints := transport.MakeGrpcUserDetailsServiceEndpoints(grpc_user_srv_mock)
+	mock_srv := new(transport.GrpcUserDetailsSrvMock)
+	endpoints := transport.MakeGrpcUserDetailsServiceEndpoints(mock_srv)
+	grpc_service := transport.NewGrpcUserDetailsServer(endpoints)
 
 	test_cases := []struct {
 		test_name string
-		data      transport.SetUserDetailsRequest
-		res       transport.SetUserDetailsResponse
+		data      *detailspb.SetUserDetailsRequest
+		res       *detailspb.SetUserDetailsResponse
 		srv_res   bool
 		err       error
 	}{
 		{
-			test_name: "set user details first time values success",
-			data: transport.SetUserDetailsRequest{
+			test_name: "set details success",
+			data: &detailspb.SetUserDetailsRequest{
 				UserId:       1,
 				Country:      "Mexico",
 				City:         "CDMX",
 				MobileNumber: "11223344",
 				Married:      false,
 				Height:       1.75,
-				Weigth:       76.0,
-			},
-			res: transport.SetUserDetailsResponse{
-				Success: true,
+				Weight:       76.0,
 			},
 			srv_res: true,
 			err:     nil,
 		},
 		{
-			test_name: "set user details specific values success",
-			data: transport.SetUserDetailsRequest{
+			test_name: "update details success",
+			data: &detailspb.SetUserDetailsRequest{
 				UserId:       1,
 				MobileNumber: "12345789",
-			},
-			res: transport.SetUserDetailsResponse{
-				Success: true,
+				Married:      false,
+				Height:       1.75,
 			},
 			srv_res: true,
 			err:     nil,
@@ -57,12 +54,18 @@ func TestSetUserDetails(t *testing.T) {
 			// prepare
 			assert := assert.New(t)
 			ctx := context.Background()
+			if tc.err != nil {
+				tc.res = nil
+			} else {
+				tc.res = &detailspb.SetUserDetailsResponse{
+					Success: tc.srv_res,
+				}
+			}
 
 			// act
-			grpc_user_srv_mock.On("SetUserDetails", ctx, tc.data.UserId, tc.data.Country, tc.data.City,
-				tc.data.MobileNumber, tc.data.Married, tc.data.Height, tc.data.Weigth).Return(tc.srv_res, tc.err)
-
-			res, err := endpoints.SetUserDetails(ctx, tc.data)
+			mock_srv.On("SetUserDetails", ctx, int(tc.data.GetUserId()), tc.data.GetCountry(), tc.data.GetCity(),
+				tc.data.GetMobileNumber(), tc.data.GetMarried(), tc.data.GetHeight(), tc.data.GetWeight()).Return(tc.srv_res, tc.err)
+			res, err := grpc_service.SetUserDetails(ctx, tc.data)
 
 			// assert
 			assert.Equal(tc.res, res)
@@ -72,20 +75,20 @@ func TestSetUserDetails(t *testing.T) {
 }
 
 func TestGetUserDetails(t *testing.T) {
-	grpc_user_srv_mock := new(transport.GrpcUserDetailsSrvMock)
-
-	endpoints := transport.MakeGrpcUserDetailsServiceEndpoints(grpc_user_srv_mock)
+	mock_srv := new(transport.GrpcUserDetailsSrvMock)
+	endpoints := transport.MakeGrpcUserDetailsServiceEndpoints(mock_srv)
+	grpc_service := transport.NewGrpcUserDetailsServer(endpoints)
 
 	test_cases := []struct {
 		test_name string
-		data      transport.GetUserDetailsRequest
-		res       transport.GetUserDetailsResponse
+		data      *detailspb.GetUserDetailsRequest
+		res       *detailspb.GetUserDetailsResponse
 		srv_res   entities.UserDetails
 		err       error
 	}{
 		{
-			test_name: "get user details success",
-			data: transport.GetUserDetailsRequest{
+			test_name: "get details success",
+			data: &detailspb.GetUserDetailsRequest{
 				UserId: 0,
 			},
 			srv_res: entities.UserDetails{
@@ -99,8 +102,8 @@ func TestGetUserDetails(t *testing.T) {
 			err: nil,
 		},
 		{
-			test_name: "get user details which does not exist error",
-			data: transport.GetUserDetailsRequest{
+			test_name: "get details which does not exist error",
+			data: &detailspb.GetUserDetailsRequest{
 				UserId: 1,
 			},
 			err: errors.New("User not found"),
@@ -111,13 +114,16 @@ func TestGetUserDetails(t *testing.T) {
 			// prepare
 			assert := assert.New(t)
 			ctx := context.Background()
-			tc.res = transport.GetUserDetailsResponse{Country: tc.srv_res.Country, City: tc.srv_res.City, MobileNumber: tc.srv_res.MobileNumber,
-				Married: tc.srv_res.Married, Height: tc.srv_res.Height, Weight: tc.srv_res.Weight}
+			if tc.err != nil {
+				tc.res = nil
+			} else {
+				tc.res = &detailspb.GetUserDetailsResponse{Country: tc.srv_res.Country, City: tc.srv_res.City, MobileNumber: tc.srv_res.MobileNumber,
+					Married: tc.srv_res.Married, Height: tc.srv_res.Height, Weight: tc.srv_res.Weight}
+			}
 
 			// act
-			grpc_user_srv_mock.On("GetUserDetails", ctx, tc.data.UserId).Return(tc.srv_res, tc.err)
-
-			res, err := endpoints.GetUserDetails(ctx, tc.data)
+			mock_srv.On("GetUserDetails", ctx, int(tc.data.GetUserId())).Return(tc.srv_res, tc.err)
+			res, err := grpc_service.GetUserDetails(ctx, tc.data)
 
 			// assert
 			assert.Equal(tc.res, res)
@@ -127,28 +133,28 @@ func TestGetUserDetails(t *testing.T) {
 }
 
 func TestDeleteUserDetails(t *testing.T) {
-	grpc_user_srv_mock := new(transport.GrpcUserDetailsSrvMock)
-
-	endpoints := transport.MakeGrpcUserDetailsServiceEndpoints(grpc_user_srv_mock)
+	mock_srv := new(transport.GrpcUserDetailsSrvMock)
+	endpoints := transport.MakeGrpcUserDetailsServiceEndpoints(mock_srv)
+	grpc_service := transport.NewGrpcUserDetailsServer(endpoints)
 
 	test_cases := []struct {
 		test_name string
-		data      transport.DeleteUserDetailsRequest
-		res       transport.DeleteUserDetailsResponse
+		data      *detailspb.DeleteUserDetailsRequest
+		res       *detailspb.DeleteUserDetailsResponse
 		srv_res   bool
 		err       error
 	}{
 		{
-			test_name: "delete user details success",
-			data: transport.DeleteUserDetailsRequest{
+			test_name: "delete details success",
+			data: &detailspb.DeleteUserDetailsRequest{
 				UserId: 0,
 			},
 			srv_res: true,
 			err:     nil,
 		},
 		{
-			test_name: "delete user details which does not exist error",
-			data: transport.DeleteUserDetailsRequest{
+			test_name: "delete details which does not exist error",
+			data: &detailspb.DeleteUserDetailsRequest{
 				UserId: 1,
 			},
 			err: errors.New("User not found"),
@@ -159,12 +165,15 @@ func TestDeleteUserDetails(t *testing.T) {
 			// prepare
 			assert := assert.New(t)
 			ctx := context.Background()
-			tc.res = transport.DeleteUserDetailsResponse{Success: tc.srv_res}
+			if tc.err != nil {
+				tc.res = nil
+			} else {
+				tc.res = &detailspb.DeleteUserDetailsResponse{Success: tc.srv_res}
+			}
 
 			// act
-			grpc_user_srv_mock.On("DeleteUserDetails", ctx, tc.data.UserId).Return(tc.srv_res, tc.err)
-
-			res, err := endpoints.DeleteUserDetails(ctx, tc.data)
+			mock_srv.On("DeleteUserDetails", ctx, int(tc.data.GetUserId())).Return(tc.srv_res, tc.err)
+			res, err := grpc_service.DeleteUserDetails(ctx, tc.data)
 
 			// assert
 			assert.Equal(tc.res, res)
