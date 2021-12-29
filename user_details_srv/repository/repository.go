@@ -40,7 +40,7 @@ func (r *userDetailsRepository) SetUserDetails(ctx context.Context, details enti
 	}
 
 	if err != nil {
-		return false, err
+		return false, errors.New("Internal Error")
 	}
 
 	return true, nil
@@ -51,10 +51,9 @@ func (r *userDetailsRepository) GetUserDetails(ctx context.Context, user_id int)
 	var res entities.UserDetails
 
 	if helpers.NoExists(collection, ctx, user_id) {
-		err := errors.New("User not found")
-		return res, err
+		return res, errors.New("User not found")
 	} else if err := collection.FindOne(ctx, bson.D{{"_id", user_id}}).Decode(&res); err != nil {
-		return res, err
+		return res, errors.New("Internal Error")
 	}
 
 	return res, nil
@@ -62,15 +61,12 @@ func (r *userDetailsRepository) GetUserDetails(ctx context.Context, user_id int)
 
 func (r *userDetailsRepository) DeleteUserDetails(ctx context.Context, user_id int) (bool, error) {
 	collection := r.db.Collection("information")
-	var res bool
 
 	if helpers.NoExists(collection, ctx, user_id) {
-		err := errors.New("User not found")
-		return res, err
+		return false, errors.New("User not found")
 	} else if _, err := collection.DeleteOne(ctx, bson.D{{"_id", user_id}}); err != nil {
-		return res, err
+		return false, errors.New("Internal Error")
 	}
 
-	res = true
-	return res, nil
+	return true, nil
 }
