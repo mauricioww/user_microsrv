@@ -45,7 +45,7 @@ func (r *httpRepository) CreateUser(ctx context.Context, user entities.User) (in
 
 	user_res, err := r.user_client.CreateUser(ctx, &userpb_req)
 	if err != nil {
-		level.Error(logger).Log("err", err)
+		level.Error(logger).Log("err_user", err)
 		return res, err
 	}
 
@@ -61,7 +61,7 @@ func (r *httpRepository) CreateUser(ctx context.Context, user entities.User) (in
 
 	details_res, err := r.details_client.SetUserDetails(ctx, &details_req)
 	if err != nil {
-		level.Error(logger).Log("err", err)
+		level.Error(logger).Log("err_details", err)
 		return res, err
 	}
 
@@ -83,7 +83,7 @@ func (r *httpRepository) Authenticate(ctx context.Context, session entities.Sess
 	auth_res, err := r.user_client.Authenticate(ctx, &auth_req)
 
 	if err != nil {
-		level.Error(logger).Log("err", err)
+		level.Error(logger).Log("err_user", err)
 	} else {
 		res = int(auth_res.GetUserId())
 	}
@@ -113,13 +113,13 @@ func (r *httpRepository) UpdateUser(ctx context.Context, user entities.UserUpdat
 
 	user_res, err := r.user_client.UpdateUser(ctx, &user_req)
 	if err != nil {
-		level.Error(logger).Log("err", err)
+		level.Error(logger).Log("err_user", err)
 		return res, err
 	}
 
 	details_res, err := r.details_client.SetUserDetails(ctx, &details_req)
 	if err != nil {
-		level.Error(logger).Log("err", err)
+		level.Error(logger).Log("err_details", err)
 		return res, err
 	}
 
@@ -142,13 +142,13 @@ func (r *httpRepository) GetUser(ctx context.Context, id int) (entities.User, er
 	user_res, err := r.user_client.GetUser(ctx, &user_req)
 
 	if err != nil {
-		level.Error(logger).Log("err", err)
+		level.Error(logger).Log("err_user", err)
 		return res, err
 	}
 
 	details_res, err := r.details_client.GetUserDetails(ctx, &details_req)
 	if err != nil {
-		level.Error(logger).Log("err", err)
+		level.Error(logger).Log("err_details", err)
 		return res, err
 	}
 
@@ -179,7 +179,7 @@ func (r *httpRepository) DeleteUser(ctx context.Context, id int) (bool, error) {
 	user_res, err := r.user_client.DeleteUser(ctx, &user_req)
 
 	if err != nil {
-		level.Error(logger).Log("err", err)
+		level.Error(logger).Log("err_user", err)
 		return res, err
 	}
 
@@ -189,7 +189,7 @@ func (r *httpRepository) DeleteUser(ctx context.Context, id int) (bool, error) {
 	details_res, err := r.details_client.DeleteUserDetails(ctx, &details_req)
 
 	if err != nil {
-		level.Error(logger).Log("err", err)
+		level.Error(logger).Log("err_details", err)
 		return res, err
 	}
 

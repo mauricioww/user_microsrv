@@ -5,6 +5,9 @@ import (
 	"errors"
 
 	grpc_gokit "github.com/go-kit/kit/transport/grpc"
+	grpc_err "github.com/mauricioww/user_microsrv/errors"
+	"google.golang.org/grpc/status"
+
 	"github.com/mauricioww/user_microsrv/user_srv/userpb"
 )
 
@@ -165,7 +168,8 @@ func (g *gRPCServer) CreateUser(ctx context.Context, req *userpb.CreateUserReque
 	_, res, err := g.createUser.ServeGRPC(ctx, req)
 
 	if err != nil {
-		return nil, err
+		e, _ := err.(grpc_err.ErrorResolver)
+		return nil, status.Error(e.GrpcCode(), err.Error())
 	}
 
 	return res.(*userpb.CreateUserResponse), err
@@ -175,7 +179,8 @@ func (g *gRPCServer) Authenticate(ctx context.Context, req *userpb.AuthenticateR
 	_, res, err := g.authenticate.ServeGRPC(ctx, req)
 
 	if err != nil {
-		return nil, err
+		e, _ := err.(grpc_err.ErrorResolver)
+		return nil, status.Error(e.GrpcCode(), err.Error())
 	}
 
 	return res.(*userpb.AuthenticateResponse), nil
@@ -185,7 +190,8 @@ func (g *gRPCServer) UpdateUser(ctx context.Context, req *userpb.UpdateUserReque
 	_, res, err := g.updateUser.ServeGRPC(ctx, req)
 
 	if err != nil {
-		return nil, err
+		e, _ := err.(grpc_err.ErrorResolver)
+		return nil, status.Error(e.GrpcCode(), err.Error())
 	}
 
 	return res.(*userpb.UpdateUserResponse), nil
@@ -195,7 +201,8 @@ func (g *gRPCServer) GetUser(ctx context.Context, req *userpb.GetUserRequest) (*
 	_, res, err := g.getUser.ServeGRPC(ctx, req)
 
 	if err != nil {
-		return nil, err
+		e, _ := err.(grpc_err.ErrorResolver)
+		return nil, status.Error(e.GrpcCode(), err.Error())
 	}
 
 	return res.(*userpb.GetUserResponse), nil
@@ -205,7 +212,8 @@ func (g *gRPCServer) DeleteUser(ctx context.Context, req *userpb.DeleteUserReque
 	_, res, err := g.deleteUser.ServeGRPC(ctx, req)
 
 	if err != nil {
-		return nil, err
+		e, _ := err.(grpc_err.ErrorResolver)
+		return nil, status.Error(e.GrpcCode(), err.Error())
 	}
 
 	return res.(*userpb.DeleteUserResponse), nil

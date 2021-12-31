@@ -2,10 +2,10 @@ package service
 
 import (
 	"context"
-	"errors"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/mauricioww/user_microsrv/errors"
 	"github.com/mauricioww/user_microsrv/helpers"
 	"github.com/mauricioww/user_microsrv/user_srv/entities"
 	"github.com/mauricioww/user_microsrv/user_srv/repository"
@@ -35,11 +35,11 @@ func (g *grpcUserService) CreateUser(ctx context.Context, email string, pwd stri
 	logger := log.With(g.logger, "method", "create_user")
 
 	if email == "" {
-		e := errors.New("Email empty")
+		e := errors.NewBadRequestEmailError()
 		level.Error(logger).Log("validation: ", e)
 		return -1, e
 	} else if pwd == "" {
-		e := errors.New("Password empty")
+		e := errors.NewBadRequestPasswordError()
 		level.Error(logger).Log("validation: ", e)
 		return -1, e
 	}
@@ -67,11 +67,11 @@ func (g *grpcUserService) Authenticate(ctx context.Context, email string, pwd st
 	logger := log.With(g.logger, "method", "authenticate")
 
 	if email == "" {
-		e := errors.New("Email empty")
+		e := errors.NewBadRequestEmailError()
 		level.Error(logger).Log("validation: ", e)
 		return -1, e
 	} else if pwd == "" {
-		e := errors.New("Password empty")
+		e := errors.NewBadRequestPasswordError()
 		level.Error(logger).Log("validation: ", e)
 		return -1, e
 	}
@@ -87,7 +87,7 @@ func (g *grpcUserService) Authenticate(ctx context.Context, email string, pwd st
 		level.Error(logger).Log("ERROR", err)
 		return -1, err
 	} else if ciphered_pwd := helpers.Cipher(auth.Password); ciphered_pwd != hashed_pwd {
-		e := errors.New("Password error")
+		e := errors.NewUnauthenticatedError()
 		level.Error(logger).Log("ERROR", e)
 		return -1, e
 	}
@@ -100,11 +100,11 @@ func (g *grpcUserService) UpdateUser(ctx context.Context, id int, email string, 
 	logger := log.With(g.logger, "method", "update_user")
 
 	if email == "" {
-		e := errors.New("Email empty")
+		e := errors.NewBadRequestEmailError()
 		level.Error(logger).Log("validation: ", e)
 		return false, e
 	} else if pwd == "" {
-		e := errors.New("Password empty")
+		e := errors.NewBadRequestPasswordError()
 		level.Error(logger).Log("validation: ", e)
 		return false, e
 	}

@@ -9,8 +9,10 @@ import (
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
-	http_gokit "github.com/go-kit/kit/transport/http"
+	gokit_http "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
+	"github.com/mauricioww/user_microsrv/errors"
+	"google.golang.org/grpc/status"
 )
 
 func NewHTTPServer(ctx context.Context, http_endpoints HttpEndpoints) http.Handler {
@@ -20,34 +22,41 @@ func NewHTTPServer(ctx context.Context, http_endpoints HttpEndpoints) http.Handl
 	user_router := root.PathPrefix("/user").Subrouter()
 	// user_router.Use(authMiddleware)
 
-	user_router.Methods("GET").Path("/{id}").Handler(http_gokit.NewServer(
+	opt := gokit_http.ServerOption(gokit_http.ServerErrorEncoder(encodeError))
+
+	user_router.Methods("GET").Path("/{id}").Handler(gokit_http.NewServer(
 		http_endpoints.GetUser,
 		decodeGetUserRequest,
 		encodeResponse,
+		opt,
 	))
 
-	user_router.Methods("POST").Handler(http_gokit.NewServer(
+	user_router.Methods("POST").Handler(gokit_http.NewServer(
 		http_endpoints.CreateUser,
 		decodeCreateUserRequest,
 		encodeResponse,
+		opt,
 	))
 
-	user_router.Methods("PUT").Path("/{id}").Handler(http_gokit.NewServer(
+	user_router.Methods("PUT").Path("/{id}").Handler(gokit_http.NewServer(
 		http_endpoints.UpdateUser,
 		decodeUpdateUserRequest,
 		encodeResponse,
+		opt,
 	))
 
-	user_router.Methods("DELETE").Path("/{id}").Handler(http_gokit.NewServer(
+	user_router.Methods("DELETE").Path("/{id}").Handler(gokit_http.NewServer(
 		http_endpoints.DeleteUser,
 		decodeDeleteUserRequest,
 		encodeResponse,
+		opt,
 	))
 
-	root.Methods("GET").Path("/auth").Handler(http_gokit.NewServer(
+	root.Methods("GET").Path("/auth").Handler(gokit_http.NewServer(
 		http_endpoints.Authenticate,
 		decodeAuthenticateRequest,
 		encodeResponse,
+		opt,
 	))
 
 	return root
@@ -153,4 +162,11 @@ func decodeDeleteUserRequest(ctx context.Context, r *http.Request) (interface{},
 
 func encodeResponse(ctx context.Context, rw http.ResponseWriter, response interface{}) error {
 	return json.NewEncoder(rw).Encode(response)
+}
+
+func encodeError(_ context.Context, err error, w http.ResponseWriter) {
+	e, _ := status.FromError(err)
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(errors.ResolveHttp(e.Code()))
+	json.NewEncoder(w).Encode(map[string]string{"error": e.Message()})
 }

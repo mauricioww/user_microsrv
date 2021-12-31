@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -45,6 +46,7 @@ func (s *httpService) CreateUser(ctx context.Context, email string, pwd string, 
 	res, err := s.repository.CreateUser(ctx, user)
 
 	if err != nil {
+		fmt.Printf("Service %+v\n", err)
 		level.Error(logger).Log("ERROR: ", err)
 	} else {
 		logger.Log("action", "success")

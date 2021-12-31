@@ -2,9 +2,9 @@ package transport_test
 
 import (
 	"context"
-	"errors"
 	"testing"
 
+	"github.com/mauricioww/user_microsrv/errors"
 	"github.com/mauricioww/user_microsrv/http_srv/entities"
 	"github.com/mauricioww/user_microsrv/http_srv/transport"
 	"github.com/stretchr/testify/assert"
@@ -52,7 +52,7 @@ func TestCreateUser(t *testing.T) {
 				Email: "success@email.com",
 				Age:   23,
 			},
-			err: errors.New("Email or Password empty!"),
+			err: errors.NewBadRequestPasswordError(),
 		},
 		{
 			test_name: "no email error",
@@ -66,7 +66,7 @@ func TestCreateUser(t *testing.T) {
 				Password: "qwerty",
 				Age:      23,
 			},
-			err: errors.New("Email or Password empty!"),
+			err: errors.NewBadRequestEmailError(),
 		},
 	}
 
@@ -119,14 +119,14 @@ func TestAuthenticate(t *testing.T) {
 			data: transport.AuthenticateRequest{
 				Email: "user@email.com",
 			},
-			err: errors.New("Empty email or password!"),
+			// err: errors.New("Empty email or password!"),
 		},
 		{
 			test_name: "no email error",
 			data: transport.AuthenticateRequest{
 				Password: "fake_password",
 			},
-			err: errors.New("Empty email or password!"),
+			// err: errors.New("Empty email or password!"),
 		},
 		{
 			test_name: "user not found",
@@ -135,7 +135,7 @@ func TestAuthenticate(t *testing.T) {
 				Password: "fake_password",
 			},
 			res_string: "",
-			err:        errors.New("User not found"),
+			// err:        errors.New("User not found"),
 		},
 		{
 			test_name: "invalid password",
@@ -144,7 +144,7 @@ func TestAuthenticate(t *testing.T) {
 				Password: "invalid_password",
 			},
 			res_string: "",
-			err:        errors.New("Invalid user"),
+			// err:        errors.New("Invalid user"),
 		},
 	}
 
