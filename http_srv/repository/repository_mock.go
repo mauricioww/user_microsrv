@@ -12,6 +12,7 @@ import (
 	"github.com/mauricioww/user_microsrv/user_srv/userpb"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/test/bufconn"
 )
 
@@ -122,6 +123,12 @@ func (m *GrpcDetailsMock) GetUserDetails(ctx context.Context, req *detailspb.Get
 	return args.Get(0).(*detailspb.GetUserDetailsResponse), args.Error(1)
 }
 
+func (m *GrpcDetailsMock) DeleteUserDetails(ctx context.Context, req *detailspb.DeleteUserDetailsRequest) (*detailspb.DeleteUserDetailsResponse, error) {
+	args := m.Called(ctx, req)
+
+	return args.Get(0).(*detailspb.DeleteUserDetailsResponse), args.Error(1)
+}
+
 func GenereateDetails() entities.Details {
 	return entities.Details{
 		Country:      "Mexico",
@@ -131,4 +138,10 @@ func GenereateDetails() entities.Details {
 		Height:       1.75,
 		Weight:       76.0,
 	}
+}
+
+func TestErrors(err1 error, err2 error) bool {
+	e1 := status.Convert(err1)
+	e2 := status.Convert(err2)
+	return (e1.Code() == e2.Code()) && (e1.Message() == e2.Message())
 }

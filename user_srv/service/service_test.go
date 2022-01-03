@@ -2,9 +2,9 @@ package service_test
 
 import (
 	"context"
-	"errors"
 	"testing"
 
+	"github.com/mauricioww/user_microsrv/errors"
 	"github.com/mauricioww/user_microsrv/helpers"
 	"github.com/mauricioww/user_microsrv/user_srv/entities"
 	"github.com/mauricioww/user_microsrv/user_srv/service"
@@ -40,7 +40,7 @@ func TestCreateUser(t *testing.T) {
 				Age:      23,
 			},
 			res: -1,
-			err: errors.New("Email empty"),
+			err: errors.NewBadRequestEmailError(),
 		},
 		{
 			test_name: "empty password error",
@@ -49,7 +49,7 @@ func TestCreateUser(t *testing.T) {
 				Age:   23,
 			},
 			res: -1,
-			err: errors.New("Password empty"),
+			err: errors.NewBadRequestPasswordError(),
 		},
 	}
 
@@ -98,7 +98,7 @@ func TestAuthenticate(t *testing.T) {
 				Email: "user@email.com",
 			},
 			res: -1,
-			err: errors.New("Password empty"),
+			err: errors.NewBadRequestPasswordError(),
 		},
 		{
 			test_name: "no email error",
@@ -106,7 +106,7 @@ func TestAuthenticate(t *testing.T) {
 				Password: "password",
 			},
 			res: -1,
-			err: errors.New("Email empty"),
+			err: errors.NewBadRequestEmailError(),
 		},
 		{
 			test_name: "user not found error",
@@ -115,9 +115,9 @@ func TestAuthenticate(t *testing.T) {
 				Password: "password",
 			},
 			repo_pwd: "password",
-			repo_err: errors.New("User not found"),
+			repo_err: errors.NewUserNotFoundError(),
 			res:      -1,
-			err:      errors.New("User not found"),
+			err:      errors.NewUserNotFoundError(),
 		},
 		{
 			test_name: "invalid pasword error",
@@ -127,7 +127,7 @@ func TestAuthenticate(t *testing.T) {
 			},
 			repo_pwd: "incorrect_password",
 			res:      -1,
-			err:      errors.New("Password error"),
+			err:      errors.NewUnauthenticatedError(),
 		},
 	}
 
@@ -190,7 +190,7 @@ func TestUpdateUser(t *testing.T) {
 				},
 			},
 			res: false,
-			err: errors.New("Password empty"),
+			err: errors.NewBadRequestPasswordError(),
 		},
 		{
 			test_name: "no email error",
@@ -202,7 +202,7 @@ func TestUpdateUser(t *testing.T) {
 				},
 			},
 			res: false,
-			err: errors.New("Email empty"),
+			err: errors.NewBadRequestEmailError(),
 		},
 	}
 
@@ -250,7 +250,7 @@ func TestGetUser(t *testing.T) {
 			test_name: "user not found error",
 			data:      -1,
 			res:       entities.User{},
-			err:       errors.New("User not found"),
+			err:       errors.NewUserNotFoundError(),
 		},
 	}
 
@@ -294,7 +294,7 @@ func TestDeleteUser(t *testing.T) {
 			test_name: "user does not exist error",
 			data:      -1,
 			res:       false,
-			err:       errors.New("User not found"),
+			err:       errors.NewUserNotFoundError(),
 		},
 	}
 

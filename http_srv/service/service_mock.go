@@ -2,9 +2,12 @@ package service
 
 import (
 	"context"
+	"os"
 
+	"github.com/go-kit/kit/log"
 	"github.com/mauricioww/user_microsrv/http_srv/entities"
 	"github.com/stretchr/testify/mock"
+	"google.golang.org/grpc/status"
 )
 
 type RepoMock struct {
@@ -50,4 +53,28 @@ func GenenerateDetails() entities.Details {
 		Height:       1.75,
 		Weight:       76.0,
 	}
+}
+
+func InitLogger() log.Logger {
+	var logger log.Logger
+	{
+		logger = log.NewLogfmtLogger(os.Stderr)
+		logger = log.NewSyncLogger(logger)
+		logger = log.With(
+			logger,
+			"service",
+			"account",
+			"time",
+			log.DefaultTimestampUTC,
+			"caller",
+			log.DefaultCaller,
+		)
+	}
+	return logger
+}
+
+func TestErrors(err1 error, err2 error) bool {
+	e1 := status.Convert(err1)
+	e2 := status.Convert(err2)
+	return (e1.Code() == e2.Code()) && (e1.Message() == e2.Message())
 }

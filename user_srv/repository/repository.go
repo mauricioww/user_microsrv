@@ -3,9 +3,9 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"errors"
 
 	"github.com/go-kit/kit/log"
+	"github.com/mauricioww/user_microsrv/errors"
 	"github.com/mauricioww/user_microsrv/user_srv/entities"
 )
 
@@ -56,7 +56,7 @@ func NewUserRepository(mysql_db *sql.DB, l log.Logger) UserRepository {
 
 func (r *userRepository) CreateUser(ctx context.Context, user entities.User) (int, error) {
 	if id, err := r.db.ExecContext(ctx, create_user_sql, user.Email, user.Password, user.Age); err != nil {
-		return -1, errors.New("Internal Error")
+		return -1, errors.NewInternalError()
 	} else {
 		n, _ := id.LastInsertId()
 		return int(n), nil
@@ -67,9 +67,9 @@ func (r *userRepository) Authenticate(ctx context.Context, session *entities.Ses
 	var hash string
 
 	if err := r.db.QueryRow(authenticate_sql, session.Email).Scan(&session.Id, &hash); err == sql.ErrNoRows {
-		return "", errors.New("User not found")
+		return "", errors.NewUserNotFoundError()
 	} else if err != nil {
-		return "", errors.New("Internal Error")
+		return "", errors.NewInternalError()
 	}
 
 	return hash, nil
@@ -78,8 +78,10 @@ func (r *userRepository) Authenticate(ctx context.Context, session *entities.Ses
 func (r *userRepository) UpdateUser(ctx context.Context, update entities.Update) (entities.User, error) {
 	var u entities.User
 
-	if _, err := r.db.ExecContext(ctx, update_user_sql, update.Email, update.Password, update.Age, update.UserId); err != nil {
-		return u, errors.New("Internal Error")
+	if err := r.db.QueryRow(get_user_by_id, update.UserId).Scan(); err == sql.ErrNoRows {
+		return u, errors.NewUserNotFoundError()
+	} else if _, err := r.db.ExecContext(ctx, update_user_sql, update.Email, update.Password, update.Age, update.UserId); err != nil {
+		return u, errors.NewInternalError()
 	}
 
 	_ = r.db.QueryRow(get_user_by_id, update.UserId).Scan(&u.Email, &u.Password, &u.Age)
@@ -90,9 +92,9 @@ func (r *userRepository) GetUser(ctx context.Context, id int) (entities.User, er
 	var u entities.User
 
 	if err := r.db.QueryRow(get_user_by_id, id).Scan(&u.Email, &u.Password, &u.Age); err == sql.ErrNoRows {
-		return entities.User{}, errors.New("User not found")
+		return entities.User{}, errors.NewUserNotFoundError()
 	} else if err != nil {
-		return entities.User{}, errors.New("Internal Error")
+		return entities.User{}, errors.NewInternalError()
 	}
 
 	return u, nil
@@ -101,9 +103,9 @@ func (r *userRepository) GetUser(ctx context.Context, id int) (entities.User, er
 func (r *userRepository) DeleteUser(ctx context.Context, id int) (bool, error) {
 
 	if err := r.db.QueryRow(get_user_by_id, id).Scan(); err == sql.ErrNoRows {
-		return false, errors.New("User not found")
+		return false, errors.NewUserNotFoundError()
 	} else if _, err := r.db.ExecContext(ctx, delete_user_sql, id); err != nil {
-		return false, errors.New("Internal Error")
+		return false, errors.NewInternalError()
 	}
 
 	return true, nil

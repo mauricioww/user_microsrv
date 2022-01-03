@@ -2,13 +2,14 @@ package transport_test
 
 import (
 	"context"
-	"errors"
 	"testing"
 
+	"github.com/mauricioww/user_microsrv/errors"
 	"github.com/mauricioww/user_microsrv/user_srv/entities"
 	"github.com/mauricioww/user_microsrv/user_srv/transport"
 	"github.com/mauricioww/user_microsrv/user_srv/userpb"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc/status"
 )
 
 func TestCreateUser(t *testing.T) {
@@ -20,8 +21,9 @@ func TestCreateUser(t *testing.T) {
 		test_name string
 		user_req  *userpb.CreateUserRequest
 		user_res  *userpb.CreateUserResponse
-		srv_res   int
 		err       error
+		srv_res   int
+		srv_err   error
 	}{
 		{
 			test_name: "user created successfully",
@@ -31,7 +33,7 @@ func TestCreateUser(t *testing.T) {
 				Age:      23,
 			},
 			srv_res: 0,
-			err:     nil,
+			srv_err: nil,
 		},
 		{
 			test_name: "no password error",
@@ -40,7 +42,7 @@ func TestCreateUser(t *testing.T) {
 				Age:   23,
 			},
 			srv_res: -1,
-			err:     errors.New("Password empty"),
+			srv_err: errors.NewBadRequestPasswordError(),
 		},
 		{
 			test_name: "no email error",
@@ -49,7 +51,7 @@ func TestCreateUser(t *testing.T) {
 				Age:      23,
 			},
 			srv_res: -1,
-			err:     errors.New("Email empty"),
+			srv_err: errors.NewBadRequestEmailError(),
 		},
 	}
 	for _, tc := range test_cases {
@@ -57,14 +59,16 @@ func TestCreateUser(t *testing.T) {
 			// prepare
 			assert := assert.New(t)
 			ctx := context.Background()
-			if tc.err != nil {
+			if tc.srv_err != nil {
 				tc.user_res = nil
+				e, _ := tc.srv_err.(errors.ErrorResolver)
+				tc.err = status.Error(e.GrpcCode(), tc.srv_err.Error())
 			} else {
 				tc.user_res = &userpb.CreateUserResponse{Id: int32(tc.srv_res)}
 			}
 
 			// act
-			mock_srv.On("CreateUser", ctx, tc.user_req.GetEmail(), tc.user_req.GetPassword(), int(tc.user_req.GetAge())).Return(tc.srv_res, tc.err)
+			mock_srv.On("CreateUser", ctx, tc.user_req.GetEmail(), tc.user_req.GetPassword(), int(tc.user_req.GetAge())).Return(tc.srv_res, tc.srv_err)
 			res, err := grpc_service.CreateUser(ctx, tc.user_req)
 
 			// assert
@@ -83,8 +87,9 @@ func TestAuthenticate(t *testing.T) {
 		test_name string
 		data      *userpb.AuthenticateRequest
 		res       *userpb.AuthenticateResponse
-		srv_res   int
 		err       error
+		srv_res   int
+		srv_err   error
 	}{
 		{
 			test_name: "authenticate successfully",
@@ -92,7 +97,7 @@ func TestAuthenticate(t *testing.T) {
 				Email:    "user@email.com",
 				Password: "qwerty",
 			},
-			err: nil,
+			srv_err: nil,
 		},
 		{
 			test_name: "no password error",
@@ -100,7 +105,7 @@ func TestAuthenticate(t *testing.T) {
 				Email: "user@email.com",
 			},
 			srv_res: -1,
-			err:     errors.New("Password empty"),
+			srv_err: errors.NewBadRequestPasswordError(),
 		},
 		{
 			test_name: "no email error",
@@ -108,7 +113,7 @@ func TestAuthenticate(t *testing.T) {
 				Password: "invalid_password",
 			},
 			srv_res: -1,
-			err:     errors.New("Email empty"),
+			srv_err: errors.NewBadRequestEmailError(),
 		},
 		{
 			test_name: "invalid password error",
@@ -117,7 +122,7 @@ func TestAuthenticate(t *testing.T) {
 				Password: "invalid_password",
 			},
 			srv_res: -1,
-			err:     errors.New("Password error"),
+			srv_err: errors.NewUnauthenticatedError(),
 		},
 	}
 
@@ -126,14 +131,17 @@ func TestAuthenticate(t *testing.T) {
 			// prepare
 			assert := assert.New(t)
 			ctx := context.Background()
-			if tc.err != nil {
+			if tc.srv_err != nil {
 				tc.res = nil
+				e, _ := tc.srv_err.(errors.ErrorResolver)
+				tc.err = status.Error(e.GrpcCode(), tc.srv_err.Error())
+
 			} else {
 				tc.res = &userpb.AuthenticateResponse{UserId: int32(tc.srv_res)}
 			}
 
 			// act
-			mock_srv.On("Authenticate", ctx, tc.data.GetEmail(), tc.data.GetPassword()).Return(tc.srv_res, tc.err)
+			mock_srv.On("Authenticate", ctx, tc.data.GetEmail(), tc.data.GetPassword()).Return(tc.srv_res, tc.srv_err)
 			res, err := grpc_service.Authenticate(ctx, tc.data)
 
 			// assert
@@ -152,8 +160,9 @@ func TestUpdateUser(t *testing.T) {
 		test_name string
 		data      *userpb.UpdateUserRequest
 		res       *userpb.UpdateUserResponse
-		srv_res   bool
 		err       error
+		srv_res   bool
+		srv_err   error
 	}{
 		{
 			test_name: "update user successfully",
@@ -164,7 +173,7 @@ func TestUpdateUser(t *testing.T) {
 				Age:      25,
 			},
 			srv_res: true,
-			err:     nil,
+			srv_err: nil,
 		},
 		{
 			test_name: "no password error",
@@ -173,7 +182,7 @@ func TestUpdateUser(t *testing.T) {
 				Email: "new_email@domain.com",
 				Age:   25,
 			},
-			err: errors.New("Password empty"),
+			srv_err: errors.NewBadRequestPasswordError(),
 		},
 		{
 			test_name: "no email error",
@@ -182,7 +191,16 @@ func TestUpdateUser(t *testing.T) {
 				Password: "new_password",
 				Age:      25,
 			},
-			err: errors.New("Email empty"),
+			srv_err: errors.NewBadRequestEmailError(),
+		},
+		{
+			test_name: "user not found error",
+			data: &userpb.UpdateUserRequest{
+				Id:       1,
+				Email:    "new_email@domain.com",
+				Password: "new_password",
+			},
+			srv_err: errors.NewUserNotFoundError(),
 		},
 	}
 
@@ -191,14 +209,16 @@ func TestUpdateUser(t *testing.T) {
 			// prepare
 			assert := assert.New(t)
 			ctx := context.Background()
-			if tc.err != nil {
+			if tc.srv_err != nil {
 				tc.res = nil
+				e, _ := tc.srv_err.(errors.ErrorResolver)
+				tc.err = status.Error(e.GrpcCode(), tc.srv_err.Error())
 			} else {
 				tc.res = &userpb.UpdateUserResponse{Success: tc.srv_res}
 			}
 
 			// act
-			mock_srv.On("UpdateUser", ctx, int(tc.data.GetId()), tc.data.GetEmail(), tc.data.GetPassword(), int(tc.data.GetAge())).Return(tc.srv_res, tc.err)
+			mock_srv.On("UpdateUser", ctx, int(tc.data.GetId()), tc.data.GetEmail(), tc.data.GetPassword(), int(tc.data.GetAge())).Return(tc.srv_res, tc.srv_err)
 			res, err := grpc_service.UpdateUser(ctx, tc.data)
 
 			// assert
@@ -217,8 +237,9 @@ func TestGetUser(t *testing.T) {
 		test_name string
 		data      *userpb.GetUserRequest
 		res       *userpb.GetUserResponse
-		srv_res   entities.User
 		err       error
+		srv_res   entities.User
+		srv_err   error
 	}{
 		{
 			test_name: "user found",
@@ -230,14 +251,14 @@ func TestGetUser(t *testing.T) {
 				Password: "password",
 				Age:      20,
 			},
-			err: nil,
+			srv_err: nil,
 		},
 		{
 			test_name: "user not found error",
 			data: &userpb.GetUserRequest{
 				Id: 1,
 			},
-			err: errors.New("User not found"),
+			srv_err: errors.NewUserNotFoundError(),
 		},
 	}
 
@@ -246,8 +267,10 @@ func TestGetUser(t *testing.T) {
 			// prepare
 			assert := assert.New(t)
 			ctx := context.Background()
-			if tc.err != nil {
+			if tc.srv_err != nil {
 				tc.res = nil
+				e, _ := tc.srv_err.(errors.ErrorResolver)
+				tc.err = status.Error(e.GrpcCode(), tc.srv_err.Error())
 			} else {
 				tc.res = &userpb.GetUserResponse{
 					Email:    tc.srv_res.Email,
@@ -257,7 +280,7 @@ func TestGetUser(t *testing.T) {
 			}
 
 			// act
-			mock_srv.On("GetUser", ctx, int(tc.data.GetId())).Return(tc.srv_res, tc.err)
+			mock_srv.On("GetUser", ctx, int(tc.data.GetId())).Return(tc.srv_res, tc.srv_err)
 			res, err := grpc_service.GetUser(ctx, tc.data)
 
 			// assert
@@ -276,8 +299,9 @@ func TestDeleteUser(t *testing.T) {
 		test_name string
 		data      *userpb.DeleteUserRequest
 		res       *userpb.DeleteUserResponse
-		srv_res   bool
 		err       error
+		srv_res   bool
+		srv_err   error
 	}{
 		{
 			test_name: "delete user success",
@@ -285,14 +309,14 @@ func TestDeleteUser(t *testing.T) {
 				Id: 0,
 			},
 			srv_res: true,
-			err:     nil,
+			srv_err: nil,
 		},
 		{
 			test_name: "user not found error",
 			data: &userpb.DeleteUserRequest{
 				Id: 1,
 			},
-			err: errors.New("User not found"),
+			srv_err: errors.NewUserNotFoundError(),
 		},
 	}
 
@@ -301,14 +325,16 @@ func TestDeleteUser(t *testing.T) {
 			// prepare
 			assert := assert.New(t)
 			ctx := context.Background()
-			if tc.err != nil {
+			if tc.srv_err != nil {
 				tc.res = nil
+				e, _ := tc.srv_err.(errors.ErrorResolver)
+				tc.err = status.Error(e.GrpcCode(), tc.srv_err.Error())
 			} else {
 				tc.res = &userpb.DeleteUserResponse{Success: tc.srv_res}
 			}
 
 			// act
-			mock_srv.On("DeleteUser", ctx, int(tc.data.GetId())).Return(tc.srv_res, tc.err)
+			mock_srv.On("DeleteUser", ctx, int(tc.data.GetId())).Return(tc.srv_res, tc.srv_err)
 			res, err := grpc_service.DeleteUser(ctx, tc.data)
 
 			// assert

@@ -2,9 +2,9 @@ package service_test
 
 import (
 	"context"
-	"errors"
 	"testing"
 
+	"github.com/mauricioww/user_microsrv/errors"
 	"github.com/mauricioww/user_microsrv/user_details_srv/entities"
 	"github.com/mauricioww/user_microsrv/user_details_srv/service"
 	"github.com/stretchr/testify/assert"
@@ -72,7 +72,7 @@ func TestGetUserDetails(t *testing.T) {
 			test_name: "get user details success",
 			data:      0,
 			res: entities.UserDetails{
-				UserId:       1,
+				UserId:       0,
 				Country:      "Mexico",
 				City:         "CDMX",
 				MobileNumber: "11223344",
@@ -85,7 +85,7 @@ func TestGetUserDetails(t *testing.T) {
 		{
 			test_name: "get user details which does not exist error",
 			data:      1,
-			err:       errors.New("User not found"),
+			err:       errors.NewUserNotFoundError(),
 		},
 	}
 
@@ -127,7 +127,7 @@ func TestDeleteUserDetails(t *testing.T) {
 		{
 			test_name: "delete user details which does not exist error",
 			data:      1,
-			err:       errors.New("User not found"),
+			err:       errors.NewUserNotFoundError(),
 		},
 	}
 
