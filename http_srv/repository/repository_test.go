@@ -15,7 +15,6 @@ import (
 )
 
 func TestCreateUser(t *testing.T) {
-
 	user_mock := new(repository.GrpcUserMock)
 	details_mock := new(repository.GrpcDetailsMock)
 	conn1, conn2, http_repository := repository.InitRepoMock(user_mock, details_mock)
@@ -68,8 +67,8 @@ func TestCreateUser(t *testing.T) {
 			//  prepare
 			assert := assert.New(t)
 			ctx := context.Background()
-			var user_res *userpb.CreateUserResponse = nil
-			var details_res *detailspb.SetUserDetailsResponse = nil
+			var user_res *userpb.CreateUserResponse
+			var details_res *detailspb.SetUserDetailsResponse
 			user_req := &userpb.CreateUserRequest{
 				Email:    tc.user.Email,
 				Password: tc.user.Password,
@@ -98,11 +97,7 @@ func TestCreateUser(t *testing.T) {
 
 			// assert
 			assert.Equal(res, tc.repository_res)
-			if tc.user_err != nil {
-				assert.True(repository.TestErrors(tc.user_err, err))
-			} else {
-				assert.Equal(err, tc.user_err)
-			}
+			assert.True(repository.TestErrors(err, tc.user_err))
 		})
 	}
 }
@@ -171,7 +166,7 @@ func TestAuthenticate(t *testing.T) {
 			//  prepare
 			assert := assert.New(t)
 			ctx := context.Background()
-			var grpc_res *userpb.AuthenticateResponse = nil
+			var grpc_res *userpb.AuthenticateResponse
 			grpc_req := &userpb.AuthenticateRequest{
 				Email:    tc.data.Email,
 				Password: tc.data.Password,
@@ -185,11 +180,7 @@ func TestAuthenticate(t *testing.T) {
 			res, err := http_repository.Authenticate(ctx, tc.data)
 
 			// assert
-			if tc.err != nil {
-				assert.True(repository.TestErrors(err, tc.err))
-			} else {
-				assert.Equal(err, tc.err)
-			}
+			assert.True(repository.TestErrors(err, tc.err))
 			assert.Equal(res, tc.res)
 		})
 	}
@@ -296,11 +287,7 @@ func TestUpdateUser(t *testing.T) {
 
 			// assert
 			assert.Equal(res, tc.res)
-			if tc.err != nil {
-				assert.True(repository.TestErrors(err, tc.err))
-			} else {
-				assert.Equal(err, tc.err)
-			}
+			assert.True(repository.TestErrors(err, tc.err))
 		})
 	}
 }
@@ -366,11 +353,7 @@ func TestGetUser(t *testing.T) {
 
 			// assert
 			assert.Equal(res, tc.res)
-			if tc.err != nil {
-				assert.True(repository.TestErrors(tc.err, err))
-			} else {
-				assert.Equal(err, tc.err)
-			}
+			assert.True(repository.TestErrors(err, tc.err))
 		})
 	}
 }
@@ -424,11 +407,7 @@ func TestDeleteUser(t *testing.T) {
 
 			// assert
 			assert.Equal(res, tc.res)
-			if tc.err != nil {
-				assert.True(repository.TestErrors(tc.err, err))
-			} else {
-				assert.Equal(err, tc.err)
-			}
+			assert.True(repository.TestErrors(err, tc.err))
 		})
 	}
 }

@@ -2,13 +2,14 @@ package transport_test
 
 import (
 	"context"
-	"errors"
 	"testing"
 
+	"github.com/mauricioww/user_microsrv/errors"
 	"github.com/mauricioww/user_microsrv/user_details_srv/detailspb"
 	"github.com/mauricioww/user_microsrv/user_details_srv/entities"
 	"github.com/mauricioww/user_microsrv/user_details_srv/transport"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc/status"
 )
 
 func TestSetUserDetails(t *testing.T) {
@@ -84,6 +85,7 @@ func TestGetUserDetails(t *testing.T) {
 		data      *detailspb.GetUserDetailsRequest
 		res       *detailspb.GetUserDetailsResponse
 		srv_res   entities.UserDetails
+		srv_err   error
 		err       error
 	}{
 		{
@@ -99,14 +101,14 @@ func TestGetUserDetails(t *testing.T) {
 				Height:       1.75,
 				Weight:       76.0,
 			},
-			err: nil,
+			srv_err: nil,
 		},
 		{
 			test_name: "get details which does not exist error",
 			data: &detailspb.GetUserDetailsRequest{
 				UserId: 1,
 			},
-			err: errors.New("User not found"),
+			srv_err: errors.NewUserNotFoundError(),
 		},
 	}
 	for _, tc := range test_cases {
@@ -114,8 +116,10 @@ func TestGetUserDetails(t *testing.T) {
 			// prepare
 			assert := assert.New(t)
 			ctx := context.Background()
-			if tc.err != nil {
+			if tc.srv_err != nil {
 				tc.res = nil
+				e, _ := tc.srv_err.(errors.ErrorResolver)
+				tc.err = status.Error(e.GrpcCode(), tc.srv_err.Error())
 			} else {
 				tc.res = &detailspb.GetUserDetailsResponse{Country: tc.srv_res.Country, City: tc.srv_res.City, MobileNumber: tc.srv_res.MobileNumber,
 					Married: tc.srv_res.Married, Height: tc.srv_res.Height, Weight: tc.srv_res.Weight}
@@ -142,6 +146,7 @@ func TestDeleteUserDetails(t *testing.T) {
 		data      *detailspb.DeleteUserDetailsRequest
 		res       *detailspb.DeleteUserDetailsResponse
 		srv_res   bool
+		srv_err   error
 		err       error
 	}{
 		{
@@ -150,14 +155,14 @@ func TestDeleteUserDetails(t *testing.T) {
 				UserId: 0,
 			},
 			srv_res: true,
-			err:     nil,
+			srv_err: nil,
 		},
 		{
 			test_name: "delete details which does not exist error",
 			data: &detailspb.DeleteUserDetailsRequest{
 				UserId: 1,
 			},
-			err: errors.New("User not found"),
+			srv_err: errors.NewUserNotFoundError(),
 		},
 	}
 	for _, tc := range test_cases {
@@ -165,8 +170,10 @@ func TestDeleteUserDetails(t *testing.T) {
 			// prepare
 			assert := assert.New(t)
 			ctx := context.Background()
-			if tc.err != nil {
+			if tc.srv_err != nil {
 				tc.res = nil
+				c, _ := tc.srv_err.(errors.ErrorResolver)
+				tc.err = status.Error(c.GrpcCode(), tc.srv_err.Error())
 			} else {
 				tc.res = &detailspb.DeleteUserDetailsResponse{Success: tc.srv_res}
 			}
