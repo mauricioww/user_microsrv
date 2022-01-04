@@ -19,7 +19,7 @@ func NewHTTPServer(ctx context.Context, http_endpoints HttpEndpoints) http.Handl
 	root := mux.NewRouter()
 	root.Use(middleware)
 
-	user_router := root.PathPrefix("/user").Subrouter()
+	user_router := root.PathPrefix("/users").Subrouter()
 	// user_router.Use(authMiddleware)
 
 	opt := gokit_http.ServerOption(gokit_http.ServerErrorEncoder(encodeError))

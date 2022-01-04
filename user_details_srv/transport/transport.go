@@ -5,7 +5,9 @@ import (
 	"errors"
 
 	grpc_gokit "github.com/go-kit/kit/transport/grpc"
+	grpc_err "github.com/mauricioww/user_microsrv/errors"
 	"github.com/mauricioww/user_microsrv/user_details_srv/detailspb"
+	"google.golang.org/grpc/status"
 )
 
 type gRPCServer struct {
@@ -107,7 +109,8 @@ func (g *gRPCServer) SetUserDetails(ctx context.Context, req *detailspb.SetUserD
 	_, res, err := g.setUserDetails.ServeGRPC(ctx, req)
 
 	if err != nil {
-		return nil, err
+		e, _ := err.(grpc_err.ErrorResolver)
+		return nil, status.Error(e.GrpcCode(), err.Error())
 	}
 
 	return res.(*detailspb.SetUserDetailsResponse), nil
@@ -117,7 +120,8 @@ func (g *gRPCServer) GetUserDetails(ctx context.Context, req *detailspb.GetUserD
 	_, res, err := g.getUserDetails.ServeGRPC(ctx, req)
 
 	if err != nil {
-		return nil, err
+		e, _ := err.(grpc_err.ErrorResolver)
+		return nil, status.Error(e.GrpcCode(), err.Error())
 	}
 
 	return res.(*detailspb.GetUserDetailsResponse), nil
@@ -127,7 +131,8 @@ func (g *gRPCServer) DeleteUserDetails(ctx context.Context, req *detailspb.Delet
 	_, res, err := g.deleteUserDetails.ServeGRPC(ctx, req)
 
 	if err != nil {
-		return nil, err
+		e, _ := err.(grpc_err.ErrorResolver)
+		return nil, status.Error(e.GrpcCode(), err.Error())
 	}
 
 	return res.(*detailspb.DeleteUserDetailsResponse), nil
