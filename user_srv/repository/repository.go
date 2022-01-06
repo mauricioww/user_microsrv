@@ -11,26 +11,26 @@ import (
 
 const (
 	create_user_sql = `
-		INSERT INTO usr_service(email, password, age)
+		INSERT INTO USERS(email, pwd_hash, age)
 			VALUES (?, ?, ?)
 	`
 
 	authenticate_sql = `
-		SELECT u.id, u.password FROM usr_service u WHERE u.email = ?
+		SELECT u.id, u.pwd_hash FROM USERS u WHERE u.email = ?
 	`
 
 	update_user_sql = `
-		UPDATE usr_service SET email = ?, password = ?, age = ?
+		UPDATE USERS SET email = ?, pwd_hash = ?, age = ?
 			WHERE id = ? 
 	`
 
 	get_user_by_id = `
-		SELECT u.email, u.password, u.age
-			FROM usr_service u WHERE u.id = ?
+		SELECT u.email, u.pwd_hash, u.age
+			FROM USERS u WHERE u.id = ?
 	`
 
 	delete_user_sql = `
-		DELETE FROM usr_service WHERE id = ?
+		DELETE FROM USERS WHERE id = ?
 	`
 )
 
