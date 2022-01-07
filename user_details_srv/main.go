@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/caarlos0/env/v6"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/mauricioww/user_microsrv/user_details_srv/detailspb"
@@ -19,14 +20,12 @@ import (
 	"google.golang.org/grpc"
 )
 
-const (
-	mongo_uri = "mongodb://127.0.0.1:27017"
-	database  = "gokitexa"
-	user_name = "mauriciow"
-	password  = "password"
-)
-
 func main() {
+	cts := constants{}
+
+	if err := env.Parse(&cts); err != nil {
+		fmt.Printf("%+v\n", err)
+	}
 
 	var logger log.Logger
 	{
@@ -43,14 +42,16 @@ func main() {
 		)
 	}
 	level.Info(logger).Log("mesg", "service started")
+
 	defer level.Info(logger).Log("msg", "service ended")
 
 	var db *mongo.Database
 
 	{
+		mongo_uri := fmt.Sprintf("mongodb://%v:%v", cts.DbHost, cts.DbPort)
 		credentials := options.Credential{
-			Username: user_name,
-			Password: password,
+			Username: cts.DbUser,
+			Password: cts.DbPwd,
 		}
 		client_opts := options.Client().ApplyURI(mongo_uri).SetAuth(credentials)
 		client, err := mongo.Connect(context.Background(), client_opts)
@@ -60,7 +61,7 @@ func main() {
 			os.Exit(-1)
 		}
 
-		db = client.Database(database)
+		db = client.Database(cts.DbName)
 	}
 
 	var grpc_user_details_srv service.GrpcUserDetailsService
@@ -79,7 +80,7 @@ func main() {
 
 	grpc_endpoints := transport.MakeGrpcUserDetailsServiceEndpoints(grpc_user_details_srv)
 	grpc_server := transport.NewGrpcUserDetailsServer(grpc_endpoints)
-	grpc_listener, err := net.Listen("tcp", ":50052")
+	grpc_listener, err := net.Listen("tcp", ":50051")
 
 	if err != nil {
 		logger.Log("Error listening: ", err)
@@ -96,4 +97,12 @@ func main() {
 	}()
 
 	level.Error(logger).Log("exit: ", <-errs)
+}
+
+type constants struct {
+	DbUser string `env:"DB_USER,required"`
+	DbPwd  string `env:"DB_PASSWORD,required"`
+	DbHost string `env:"DB_HOST,required"`
+	DbPort int    `env:"DB_PORT" envDefault:"27017"`
+	DbName string `env:"DB_NAME" envDefault:"grpc_details"`
 }
